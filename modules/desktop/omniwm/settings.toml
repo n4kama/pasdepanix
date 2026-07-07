@@ -1,0 +1,410 @@
+# OmniWM configuration — https://github.com/BarutSRB/OmniWM
+#
+# This file is symlinked to ~/.config/omniwm/settings.toml by home-manager
+# (PaNix/home/features/desktop/omniwm/omniwm.nix) so you can edit it here and
+# have changes tracked in the repo.
+#
+# IMPORTANT NOTES (verified against OmniWM source):
+#  - Any key omitted from this file falls back to OmniWM's built-in default,
+#    so this file only needs to contain what you care about. Below we pin the
+#    full hotkey list so every binding is visible and editable.
+#  - The `hotkeys` array is NOT merged with defaults: it is the complete set.
+#    Any action you remove from this list becomes UNBOUND. Edit the existing
+#    lines rather than shipping a partial list.
+#  - Bindings use OmniWM's human-readable format: modifiers joined with "+"
+#    in the order Control+Option+Shift+Command, then the key name.
+#    Examples: "Option+1", "Option+Shift+H", "Control+Option+Space", "Option+Shift+Page Up".
+#  - OmniWM rewrites this file atomically when you change settings in its GUI,
+#    which replaces the symlink with a real file. Prefer editing here by hand;
+#    if you use the in-app Settings UI, copy changes back into this file.
+
+# ── Workspaces ────────────────────────────────────────────────────────────
+# alt-1..9 switch workspace, alt-shift-1..9 move window to workspace
+# (matches the AeroSpace setup that was in use).
+[[hotkeys]]
+id = "switchWorkspace.0"
+binding = "Option+1"
+[[hotkeys]]
+id = "switchWorkspace.1"
+binding = "Option+2"
+[[hotkeys]]
+id = "switchWorkspace.2"
+binding = "Option+3"
+[[hotkeys]]
+id = "switchWorkspace.3"
+binding = "Option+4"
+[[hotkeys]]
+id = "switchWorkspace.4"
+binding = "Option+5"
+[[hotkeys]]
+id = "switchWorkspace.5"
+binding = "Option+6"
+[[hotkeys]]
+id = "switchWorkspace.6"
+binding = "Option+7"
+[[hotkeys]]
+id = "switchWorkspace.7"
+binding = "Option+8"
+[[hotkeys]]
+id = "switchWorkspace.8"
+binding = "Option+9"
+
+[[hotkeys]]
+id = "moveToWorkspace.0"
+binding = "Option+Shift+1"
+[[hotkeys]]
+id = "moveToWorkspace.1"
+binding = "Option+Shift+2"
+[[hotkeys]]
+id = "moveToWorkspace.2"
+binding = "Option+Shift+3"
+[[hotkeys]]
+id = "moveToWorkspace.3"
+binding = "Option+Shift+4"
+[[hotkeys]]
+id = "moveToWorkspace.4"
+binding = "Option+Shift+5"
+[[hotkeys]]
+id = "moveToWorkspace.5"
+binding = "Option+Shift+6"
+[[hotkeys]]
+id = "moveToWorkspace.6"
+binding = "Option+Shift+7"
+[[hotkeys]]
+id = "moveToWorkspace.7"
+binding = "Option+Shift+8"
+[[hotkeys]]
+id = "moveToWorkspace.8"
+binding = "Option+Shift+9"
+
+[[hotkeys]]
+id = "workspaceBackAndForth"
+binding = "Option+Tab"
+
+# ── Focus ─────────────────────────────────────────────────────────────────
+[[hotkeys]]
+id = "focus.left"
+binding = "Option+H"
+[[hotkeys]]
+id = "focus.down"
+binding = "Option+J"
+[[hotkeys]]
+id = "focus.up"
+binding = "Option+K"
+[[hotkeys]]
+id = "focus.right"
+binding = "Option+L"
+[[hotkeys]]
+id = "focusPrevious"
+binding = "Option+Shift+Tab"
+
+# ── Move / arrange windows ────────────────────────────────────────────────
+[[hotkeys]]
+id = "move.left"
+binding = "Option+Shift+H"
+[[hotkeys]]
+id = "move.down"
+binding = "Option+Shift+J"
+[[hotkeys]]
+id = "move.up"
+binding = "Option+Shift+K"
+[[hotkeys]]
+id = "move.right"
+binding = "Option+Shift+L"
+[[hotkeys]]
+id = "moveWindowToWorkspaceUp"
+binding = "Control+Option+Shift+K"
+[[hotkeys]]
+id = "moveWindowToWorkspaceDown"
+binding = "Control+Option+Shift+J"
+
+# ── Monitors ──────────────────────────────────────────────────────────────
+[[hotkeys]]
+id = "focusMonitorNext"
+binding = "Control+Command+Tab"
+[[hotkeys]]
+id = "focusMonitorLast"
+binding = "Control+Command+Grave"
+
+# ── Sizing / layout ───────────────────────────────────────────────────────
+[[hotkeys]]
+id = "toggleFullscreen"
+binding = "Option+F"
+[[hotkeys]]
+id = "balanceSizes"
+binding = "Option+Shift+B"
+[[hotkeys]]
+id = "toggleWorkspaceLayout"
+binding = "Control+Option+Shift+L"
+[[hotkeys]]
+id = "toggleFocusedWindowFloating"
+binding = "Option+Shift+Space" # float/un-float the focused window (AeroSpace default)
+# bsp/dwindle resize (hjkl): grow/shrink the right & bottom borders.
+[[hotkeys]]
+id = "resizeGrow.right"
+binding = "Control+Option+L" # wider
+[[hotkeys]]
+id = "resizeShrink.right"
+binding = "Control+Option+H" # narrower
+[[hotkeys]]
+id = "resizeGrow.down"
+binding = "Control+Option+J" # taller
+[[hotkeys]]
+id = "resizeShrink.down"
+binding = "Control+Option+K" # shorter
+
+# ── Tools ─────────────────────────────────────────────────────────────────
+[[hotkeys]]
+id = "toggleOverview"
+binding = "Option+Shift+O"
+[[hotkeys]]
+id = "openCommandPalette"
+binding = "Control+Option+Space"
+[[hotkeys]]
+id = "openMenuAnywhere"
+binding = "Control+Option+M"
+[[hotkeys]]
+id = "toggleQuakeTerminal"
+binding = "Option+Grave"
+[[hotkeys]]
+id = "raiseAllFloatingWindows"
+binding = "Option+Shift+R"
+
+# ── Settings (from OmniWM GUI state) ──────────────────────────────────────
+[appearance]
+mode = "dark"
+
+[borders]
+enabled = true
+width = 2.5
+
+[borders.color]
+alpha = 1.0
+blue = 0.979300037944676
+green = 1.0
+red = 0.08458520228437894
+
+[clipboard]
+historyEnabled = false
+maxItemBytes = 8388608
+maxItems = 200
+maxTotalBytes = 67108864
+
+[dwindle]
+defaultSplitRatio = 1.0
+moveToRootStable = true
+singleWindowAspectRatio = "fill"
+smartSplit = false
+splitWidthMultiplier = 1.5
+useGlobalGaps = true
+
+[focus]
+crossesMonitorAtEdge = false
+followsMouse = false
+followsWindowToMonitor = false
+moveCrossesMonitorAtEdge = false
+moveMouseToFocusedWindow = false
+
+[gaps]
+size = 16.0
+
+[gaps.outer]
+bottom = 0.0
+left = 0.0
+right = 0.0
+top = 0.0
+
+[general]
+animationsEnabled = true
+defaultLayoutType = "dwindle"
+hotkeysEnabled = true
+ipcEnabled = false
+preventSleepEnabled = false
+spacesTrackingEnabled = true
+systemHyperTrigger = "None"
+updateChecksEnabled = true
+
+[gestures]
+fingerCount = 3
+invertDirection = true
+mouseResizeModifierKey = "option"
+scrollEnabled = true
+scrollModifierKey = "optionShift"
+scrollSensitivity = 5.0
+trackpadScrollStyle = "snap"
+
+[mouseWarp]
+enabled = false
+margin = 1
+
+[quakeTerminal]
+animationDuration = 0.2
+autoHide = false
+enabled = true
+heightPercent = 50.0
+monitorMode = "focusedWindow"
+opacity = 1.0
+position = "center"
+widthPercent = 50.0
+
+[routing]
+mode = "macOS"
+
+[statusBar]
+showAppNames = false
+showWorkspaceName = false
+useWorkspaceId = false
+
+[workspaceBar]
+backgroundOpacity = 0.1
+deduplicateAppIcons = false
+enabled = false
+height = 24.0
+hideEmptyWorkspaces = false
+labelFontSize = 12.0
+notchAware = true
+position = "overlappingMenuBar"
+reserveLayoutSpace = false
+showFloatingWindows = false
+showLabels = true
+windowLevel = "popup"
+xOffset = 0.0
+yOffset = 0.0
+
+# ── Per-app window rules (from OmniWM GUI state) ───────────────────────────
+[[appRules]]
+bundleId = "com.openai.codex"
+id = "6A31F08A-4051-4354-B439-42F4C71894A3"
+minHeight = 600.0
+minWidth = 800.0
+
+[[appRules]]
+bundleId = "com.eltima.cmd1.pro.mas"
+id = "4BA546DA-2875-4BEF-B13F-1539E833B1A0"
+minHeight = 550.0
+minWidth = 950.0
+
+[[appRules]]
+bundleId = "com.google.Chrome"
+id = "486CEFA6-69AA-4A3C-AF27-BCD38F4F138B"
+minHeight = 375.0
+minWidth = 500.0
+
+[[appRules]]
+bundleId = "dev.zed.Zed"
+id = "979F05F4-FFA2-4EDD-B23F-08A9944C759F"
+minHeight = 240.0
+minWidth = 360.0
+
+[[appRules]]
+bundleId = "com.apple.Safari"
+id = "81426D13-C1A5-475E-AFBC-00BBA05042D0"
+minHeight = 220.0
+minWidth = 574.0
+
+[[appRules]]
+bundleId = "app.zen-browser.zen"
+id = "1CF39647-F30D-4E76-9686-79B551F1B094"
+minHeight = 495.0
+minWidth = 500.0
+
+[[appRules]]
+bundleId = "org.mozilla.firefox"
+id = "005C00D3-F665-47F8-BDAE-D80790E9E46B"
+minHeight = 120.0
+minWidth = 500.0
+
+[[appRules]]
+bundleId = "company.thebrowser.dia"
+id = "C21156B1-0224-4998-97E3-8F4FA65B9F3B"
+minHeight = 420.0
+minWidth = 500.0
+
+[[appRules]]
+bundleId = "com.spotify.client"
+id = "2DE9390B-0DB4-4D0C-9ABA-06F76F1D4EA9"
+minHeight = 600.0
+minWidth = 800.0
+
+[[appRules]]
+bundleId = "com.hnc.Discord"
+id = "AF752D95-8497-4844-BE20-4C93E73BAEF2"
+minHeight = 500.0
+minWidth = 800.0
+
+[[appRules]]
+bundleId = "com.mitchellh.ghostty"
+id = "7876C9EF-437E-4D4F-9C27-B1B02F4AABCE"
+minHeight = 48.0
+minWidth = 90.0
+
+[[appRules]]
+bundleId = "com.microsoft.Outlook"
+id = "8ECAB78B-BCDD-4245-BC25-1609A49B1C86"
+minHeight = 650.0
+minWidth = 930.0
+
+[[appRules]]
+bundleId = "com.apple.MobileSMS"
+id = "552FB77D-BF0E-4737-90A6-B5BC6986C579"
+minHeight = 320.0
+minWidth = 660.0
+
+# ── Workspaces (from OmniWM GUI state) ─────────────────────────────────────
+[[workspaces]]
+id = "AD36F001-C57E-41A5-AC1D-DF5249D007F0"
+layoutType = "dwindle"
+name = "1"
+
+[workspaces.monitorAssignment]
+type = "main"
+
+[[workspaces]]
+id = "454CECD4-5E9D-4ED1-95D7-979D48817F5F"
+layoutType = "dwindle"
+name = "2"
+
+[workspaces.monitorAssignment]
+type = "main"
+
+[[workspaces]]
+id = "BEB842B5-E894-4791-9FD1-397C3CDD3538"
+layoutType = "dwindle"
+name = "3"
+
+[workspaces.monitorAssignment]
+type = "main"
+
+[[workspaces]]
+id = "248AA883-2261-4D45-943C-79C0E46A232B"
+layoutType = "dwindle"
+name = "4"
+
+[workspaces.monitorAssignment]
+type = "main"
+
+[[workspaces]]
+id = "8B8C45D6-CE9E-41D9-BD50-BE4989D5E3DE"
+layoutType = "dwindle"
+name = "5"
+
+[workspaces.monitorAssignment]
+type = "main"
+
+[[workspaces]]
+displayName = "❤️"
+id = "5953F2BF-A378-4266-91B2-287174C4FA4D"
+layoutType = "dwindle"
+name = "6"
+
+[workspaces.monitorAssignment]
+type = "secondary"
+
+[[workspaces]]
+displayName = "🚀"
+id = "A7D5E104-6985-4516-8ED5-07F144F2A33D"
+layoutType = "dwindle"
+name = "7"
+
+[workspaces.monitorAssignment]
+type = "secondary"

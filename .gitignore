@@ -1,0 +1,6 @@
+# Result of nix builds
+result
+result-*
+
+# Direnv
+.direnv/
