@@ -272,6 +272,12 @@ xOffset = 0.0
 yOffset = 0.0
 
 # ── Per-app window rules (from OmniWM GUI state) ───────────────────────────
+# Helium browser: OmniWM's heuristic auto-floats it; force it into the tiling layout.
+[[appRules]]
+bundleId = "net.imput.helium"
+id = "4D4AD8C8-6886-489B-8C62-DA070DD2F011"
+mode = "tiling"
+
 [[appRules]]
 bundleId = "com.openai.codex"
 id = "6A31F08A-4051-4354-B439-42F4C71894A3"
