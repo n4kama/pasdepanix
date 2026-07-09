@@ -159,7 +159,7 @@ id = "toggleOverview"
 binding = "Option+Shift+O"
 [[hotkeys]]
 id = "openCommandPalette"
-binding = "Control+Option+Space"
+binding = "Control+Option+P" # Control+Option+Space collides with macOS "Select next input source"
 [[hotkeys]]
 id = "openMenuAnywhere"
 binding = "Control+Option+M"
@@ -262,7 +262,6 @@ enabled = false
 height = 24.0
 hideEmptyWorkspaces = false
 labelFontSize = 12.0
-notchAware = true
 position = "overlappingMenuBar"
 reserveLayoutSpace = false
 showFloatingWindows = false
@@ -272,12 +271,11 @@ xOffset = 0.0
 yOffset = 0.0
 
 # ── Per-app window rules (from OmniWM GUI state) ───────────────────────────
-# Helium browser: OmniWM's heuristic auto-floats it; force it into the tiling layout.
-[[appRules]]
-bundleId = "net.imput.helium"
-id = "4D4AD8C8-6886-489B-8C62-DA070DD2F011"
-mode = "tiling"
-
+# Helium: a plain `layout = "tile"` bundleId rule force-tiles Chromium's invisible
+# helper windows too (phantom tiles that break the layout), so it's removed. If you
+# want the main window auto-tiled, add a rule in OmniWM's GUI with a title/size
+# matcher (real browser windows only) and port the block back here. ponytail: no
+# rule beats a broad rule that mis-manages helper windows.
 [[appRules]]
 bundleId = "com.openai.codex"
 id = "6A31F08A-4051-4354-B439-42F4C71894A3"
