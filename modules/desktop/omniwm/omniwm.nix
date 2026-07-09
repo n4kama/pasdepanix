@@ -16,4 +16,17 @@
     source = ./settings.toml;
     force = true;
   };
+
+  # OmniWM ships no built-in "start at login" (no SMAppService in the binary), so
+  # start it from a home-manager LaunchAgent instead of a stateful macOS login item
+  # declarative and removed cleanly when this module is disabled.
+  # `/usr/bin/open` launches once and exits; no KeepAlive so quitting OmniWM stays
+  # quit. Switch to the raw binary + KeepAlive = true if you want crash-restart.
+  launchd.agents.omniwm = {
+    enable = true;
+    config = {
+      ProgramArguments = ["/usr/bin/open" "-a" "OmniWM"];
+      RunAtLoad = true;
+    };
+  };
 }
