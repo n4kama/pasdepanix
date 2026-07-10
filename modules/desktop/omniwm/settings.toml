@@ -137,6 +137,9 @@ binding = "Option+Shift+B"
 id = "toggleWorkspaceLayout"
 binding = "Control+Option+Shift+L"
 [[hotkeys]]
+id = "swapSplit"
+binding = "Option+Shift+S" # dwindle: mirror the split to the other side of the screen
+[[hotkeys]]
 id = "toggleFocusedWindowFloating"
 binding = "Option+Shift+Space" # float/un-float the focused window (AeroSpace default)
 # bsp/dwindle resize (hjkl): grow/shrink the right & bottom borders.
