@@ -18,6 +18,8 @@
       gpg = ./modules/gpg.nix;
       neovim = ./modules/editors/neovim;
       omniwm = ./modules/desktop/omniwm/omniwm.nix;
+      hyprland = ./modules/desktop/hyprland.nix;
+      waybar = ./modules/desktop/waybar.nix;
       aerospace = ./modules/desktop/aerospace/aerospace.nix;
       sketchybar = ./modules/desktop/sketchybar/sketchybar.nix;
     };

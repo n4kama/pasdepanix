@@ -15,7 +15,9 @@
     shellAliases = import ./aliases.nix {inherit pkgs;};
 
     profileExtra = ''
-      eval "$(/opt/homebrew/bin/brew shellenv)"
+      # Only load Homebrew when it's actually present (macOS). On the NixOS host
+      # this path doesn't exist, so guard it to avoid a "no such file" error.
+      [[ -x /opt/homebrew/bin/brew ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
       source ~/.orbstack/shell/init.zsh 2>/dev/null || :
     '';
 

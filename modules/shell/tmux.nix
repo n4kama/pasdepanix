@@ -32,6 +32,19 @@
       catppuccin
       sensible
       vim-tmux-navigator
+      resurrect
+      {
+        # This is needed to have tmux session auto-restore when launching tmux.
+        # Options must be set BEFORE continuum.tmux runs, or auto-restore reads
+        # @continuum-restore as its default 'off' at server start and no-ops.
+        # (home-manager emits per-plugin extraConfig ahead of the run-shell.)
+        plugin = continuum;
+        extraConfig = ''
+          set -g @resurrect-capture-pane-contents 'on'
+          set -g @continuum-restore 'on'
+          set -g @continuum-save-interval '2'
+        '';
+      }
     ];
   };
 }

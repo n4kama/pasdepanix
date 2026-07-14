@@ -35,11 +35,29 @@ Add this flake as an input and import the modules:
 | `gpg` | gpg-agent pinentry (no keys) |
 | `neovim` | Neovim packages + symlink to `~/dev/nvim-config` |
 | `omniwm` | OmniWM tiling WM (macOS) |
+| `hyprland` | Hyprland session: binds, hyprpaper wallpaper, hyprlock (Linux/Wayland) |
+| `waybar` | Waybar status bar |
 | `aerospace`, `sketchybar` | archived macOS desktop configs |
 
 The Neovim module symlinks `~/.config/nvim` to `~/dev/nvim-config` (a separate
 repo). Adjust that path if yours differs. My neovim config is another git
 repository and is not included in this flake.
+
+The `hyprland` module relies on two things in your **NixOS host config** that a
+home-manager module cannot set itself:
+
+```nix
+programs.hyprland.enable = true;      # the compositor — the module sets package = null
+security.pam.services.hyprlock = {};  # lets hyprlock authenticate to unlock
+```
+
+Without the first there's no Hyprland to run; without the second, hyprlock locks
+the session but can't unlock it.
+
+The module also calls external commands from its binds and `exec-once` that it
+does not install (some needing host-level setup). Check
+`modules/desktop/hyprland.nix` and provide those dependencies before importing
+the module.
 
 `default` imports the actively-used modules; `aerospace` and `sketchybar` are
 kept for reference and not imported by `default`.
