@@ -12,9 +12,6 @@
       set-window-option -g pane-base-index 1
       set-option -g renumber-windows on
 
-      # Configure catppuccin
-      set -g @catppuccin_flavour "frappe"
-
       # Set prefix
       unbind C-b
       set -g prefix C-Space
@@ -29,7 +26,19 @@
     '';
 
     plugins = with pkgs.tmuxPlugins; [
-      catppuccin
+      {
+        # Options must be set BEFORE catppuccin.tmux runs, or it bakes
+        # window-status-format from the mocha/#T defaults first.
+        # (home-manager emits per-plugin extraConfig ahead of the run-shell.)
+        plugin = catppuccin;
+        extraConfig = ''
+          set -g @catppuccin_flavor "frappe"
+
+          # Window label shows the directory ($HOME shortened to ~), not the process
+          set -g @catppuccin_window_text " #{s|$HOME|~|:pane_current_path}"
+          set -g @catppuccin_window_current_text " #{s|$HOME|~|:pane_current_path}"
+        '';
+      }
       sensible
       vim-tmux-navigator
       resurrect
