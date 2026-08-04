@@ -49,6 +49,12 @@ in {
         natural_scroll = true;
         touchpad.natural_scroll = true;
       };
+      # Inner gap (window↔window) left at the default 5; outer gap (window↔screen
+      # edge) halved from the default 20 to 10.
+      general = {
+        gaps_in = 5;
+        gaps_out = 10;
+      };
       bind =
         [
           "SUPER, Return, exec, ghostty"

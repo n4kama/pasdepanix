@@ -7,9 +7,54 @@
   # the same "output not ready yet" login race hyprpaper hits.)
   programs.waybar = {
     enable = true;
+    # Catppuccin Frappé. Solid opaque bar; each module sits in a tinted pill.
+    # Font pulls the JetBrainsMono Nerd Font already installed on the host.
+    style = ''
+      * {
+        font-family: "JetBrainsMono Nerd Font", monospace;
+        font-size: 20px;
+        min-height: 0;
+      }
+
+      window#waybar {
+        background: transparent;   /* bar itself invisible; pills float */
+        color: #c6d0f5;        /* text */
+      }
+
+      /* every module rendered as a rounded pill */
+      #workspaces,
+      #clock,
+      #network,
+      #backlight,
+      #wireplumber,
+      #battery {
+        background: #414559;   /* surface0 */
+        border-radius: 15px;
+        padding: 0 18px;
+        margin: 0 4px;
+      }
+
+      #clock       { color: #babbf1; }  /* lavender */
+      #network     { color: #99d1db; }  /* sky */
+      #backlight   { color: #e5c890; }  /* yellow */
+      #wireplumber { color: #a6d189; }  /* green */
+      #battery     { color: #a6d189; }  /* green */
+
+      #workspaces button        { color: #737994; padding: 0 6px; }  /* overlay0 */
+      #workspaces button.active { color: #8caaee; }                 /* blue */
+      #workspaces button:hover  { color: #c6d0f5; background: transparent; }
+
+      /* battery pill recolors as it drains (states already defined below) */
+      #battery.warning  { color: #ef9f76; }  /* peach */
+      #battery.critical { color: #e78284; }  /* red */
+    '';
     settings.mainBar = {
       layer = "top";
       position = "top";
+      # gap from screen edges so the pills read as floating islands
+      margin-top = 8;
+      margin-left = 10;
+      margin-right = 10;
       modules-left = ["hyprland/workspaces"];
       modules-center = ["clock"];
       modules-right = ["network" "backlight" "wireplumber" "battery"];
