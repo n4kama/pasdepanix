@@ -12,7 +12,7 @@
       position = "top";
       modules-left = ["hyprland/workspaces"];
       modules-center = ["clock"];
-      modules-right = ["backlight" "wireplumber" "battery"];
+      modules-right = ["network" "backlight" "wireplumber" "battery"];
       clock.format = "{:%a %d %b  %H:%M}";
       # Brightness readout. Reads /sys/class/backlight directly and updates live
       # via udev when the XF86MonBrightness keys fire. Scroll on the module to
@@ -32,6 +32,15 @@
         on-click = "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle";
         on-scroll-up = "wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 5%+";
         on-scroll-down = "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-";
+      };
+      # WiFi signal quality. Reads the active connection via libnl; {signalStrength}
+      # is 0–100. Icons ramp from weak to full; tooltip shows SSID + exact %.
+      network = {
+        format-wifi = "{signalStrength}% {icon}";
+        format-ethernet = "󰈀";
+        format-disconnected = "󰤭";
+        format-icons = ["󰤟" "󰤢" "󰤥" "󰤨"];
+        tooltip-format-wifi = "{essid} ({signalStrength}%)";
       };
       battery = {
         format = "{capacity}% {icon}";
