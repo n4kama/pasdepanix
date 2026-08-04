@@ -19,7 +19,7 @@
       # nudge brightness (writes need the video-group perms from the udev rule).
       backlight = {
         format = "{percent}% {icon}";
-        format-icons = ["" "" "" "" ""];
+        format-icons = ["󰃞" "󰃟" "󰃠"];
         on-scroll-up = "brightnessctl set 5%+";
         on-scroll-down = "brightnessctl set 5%-";
       };
@@ -28,7 +28,7 @@
       wireplumber = {
         format = "{volume}% {icon}";
         format-muted = "󰝟 muted";
-        format-icons = ["" "" ""];
+        format-icons = ["󰕿" "󰖀" "󰕾"];
         on-click = "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle";
         on-scroll-up = "wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 5%+";
         on-scroll-down = "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-";
@@ -44,8 +44,8 @@
       };
       battery = {
         format = "{capacity}% {icon}";
-        format-charging = "{capacity}% ";
-        format-icons = ["" "" "" "" ""];
+        format-charging = "{capacity}% 󰂄";
+        format-icons = ["󰁺" "󰁼" "󰁾" "󰂀" "󰂂"];
         states = {
           warning = 30;
           critical = 15;
