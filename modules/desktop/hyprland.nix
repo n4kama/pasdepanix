@@ -88,6 +88,12 @@ in {
         # Firefox Picture-in-Picture: float it and pin so it follows across workspaces.
         "match:title ^(Picture-in-Picture)$, float on"
         "match:title ^(Picture-in-Picture)$, pin on"
+        # Ephemeral floating nmtui launched from the Waybar wifi widget.
+        # Custom class dodges the ghostty→workspace-2 rule above, so it floats
+        # on whatever workspace you're on and self-closes when nmtui exits.
+        "match:class ^(nmtui\\.float)$, float on"
+        "match:class ^(nmtui\\.float)$, center on"
+        "match:class ^(nmtui\\.float)$, size 800 500"
       ];
       # Mouse: SUPER+drag to move / resize windows.
       bindm = [

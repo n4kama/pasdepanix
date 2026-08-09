@@ -86,6 +86,7 @@
         format-disconnected = "󰤭";
         format-icons = ["󰤟" "󰤢" "󰤥" "󰤨"];
         tooltip-format-wifi = "{essid} ({signalStrength}%)";
+        on-click = "ghostty --class=nmtui.float -e nmtui";
       };
       battery = {
         format = "{capacity}% {icon}";
