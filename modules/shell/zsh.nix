@@ -30,7 +30,7 @@
 
       # Reminder to use tmux
       if [ -z "$TMUX" ]; then
-        echo "💡 Note to self: Use the alias 't' to join the tmux session"
+        echo "💡 Note to self: 't' joins tmux · 'tt' restores the last saved session"
       fi
     '';
   };

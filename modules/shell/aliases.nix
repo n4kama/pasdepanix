@@ -12,7 +12,10 @@
   gs = "git status";
   l = "lazygit";
   oc = "opencode --continue";
-  t = "tmux new-session -A -s main";
+  # Attach to whatever is running; only make a fresh 'main' if nothing is.
+  t = "tmux attach || tmux new -s main";
+  # Bring back the last continuum/resurrect save (auto-restore is off).
+  tt = "tmux start-server; tmux run-shell ${pkgs.tmuxPlugins.resurrect}/share/tmux-plugins/resurrect/scripts/restore.sh; tmux attach";
   v = "nvim";
   vi = "nvim";
   vim = "nvim";
