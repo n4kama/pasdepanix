@@ -36,8 +36,8 @@ Add this flake as an input and import the modules:
 | `neovim` | Neovim packages + symlink to `~/dev/nvim-config` |
 | `omniwm` | OmniWM tiling WM (macOS) |
 | `hyprland` | Hyprland session: binds, hyprpaper wallpaper, hyprlock (Linux/Wayland) |
-| `waybar` | Waybar status bar |
-| `aerospace`, `sketchybar` | archived macOS desktop configs |
+| `caelestia` | [Caelestia shell](https://github.com/caelestia-dots/shell) (bar, launcher, notifications, lock screen) |
+| `aerospace`, `sketchybar`, `waybar`, `mako` | archived, kept for reference |
 
 The Neovim module symlinks `~/.config/nvim` to `~/dev/nvim-config` (a separate
 repo). Adjust that path if yours differs. My neovim config is another git
@@ -59,5 +59,29 @@ does not install (some needing host-level setup). Check
 `modules/desktop/hyprland.nix` and provide those dependencies before importing
 the module.
 
-`default` imports the actively-used modules; `aerospace` and `sketchybar` are
-kept for reference and not imported by `default`.
+The `caelestia` module only sets values for `programs.caelestia.*` — it does
+not define that option or provide the package. The option comes from
+[caelestia-shell](https://github.com/caelestia-dots/shell)'s own home-manager
+module, so the consuming flake must add that as a separate input and import
+both:
+
+```nix
+{
+  inputs.caelestia-shell = {
+    url = "github:caelestia-dots/shell";
+    inputs.nixpkgs.follows = "nixpkgs";
+  };
+
+  # in a home-manager configuration:
+  imports = [
+    inputs.pasdepanix.homeManagerModules.caelestia
+    inputs.caelestia-shell.homeManagerModules.default
+  ];
+}
+```
+
+Without the second import, `programs.caelestia.enable = true;` fails at eval
+time — the option won't exist yet.
+
+`default` imports the actively-used modules; `aerospace`, `sketchybar`,
+`waybar`, and `mako` are archived and not imported by `default`.

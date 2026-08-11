@@ -1,4 +1,10 @@
 {...}: {
+  # The waybar mpris pill can't read Firefox's MPRIS name directly — Firefox
+  # registers it but not as D-Bus-activatable, so waybar errors ("name is not
+  # activatable") and the pill stays empty. playerctld runs as a user service
+  # exposing an activatable proxy over all players, which the module reads fine.
+  services.playerctld.enable = true;
+
   # Waybar - Status bar.
   # Currently using it with Hyprland as it does not ships a bar of its own.
   # Battery reads straight from /sys/class/power_supply (no polling command).
@@ -25,6 +31,7 @@
       #workspaces,
       #clock,
       #network,
+      #mpris,
       #backlight,
       #wireplumber,
       #battery {
@@ -35,6 +42,8 @@
       }
 
       #clock       { color: #babbf1; }  /* lavender */
+      #mpris        { color: #ca9ee6; }  /* mauve */
+      #mpris.paused { color: #737994; }  /* overlay0 – dimmed when paused */
       #network     { color: #99d1db; }  /* sky */
       #backlight   { color: #e5c890; }  /* yellow */
       #wireplumber { color: #a6d189; }  /* green */
@@ -56,9 +65,33 @@
       margin-left = 10;
       margin-right = 10;
       modules-left = ["hyprland/workspaces"];
-      modules-center = ["clock"];
+      modules-center = ["clock" "mpris"];
       modules-right = ["network" "backlight" "wireplumber" "battery"];
       clock.format = "{:%a %d %b  %H:%M}";
+      # Now-playing readout over MPRIS (D-Bus). Any MPRIS-aware source appears:
+      # Spotify natively, Firefox/Chromium for web audio (YouTube, etc). Click
+      # toggles play/pause, scroll = prev/next — handled in-module via
+      # libplayerctl, so no playerctl CLI on PATH is needed.
+      mpris = {
+        format = "{player_icon} {dynamic}";
+        format-paused = "{status_icon} {dynamic}";
+        dynamic-order = ["title" "artist"];  # title = video/song, artist = channel
+        # {dynamic} fits whole tags into dynamic-len, dropping one if they don't
+        # both fit. Cap each tag and size the budget so title + " - " + artist
+        # always fit → both show, each ellipsised only if very long.
+        title-len = 32;
+        artist-len = 18;
+        dynamic-len = 54;               # >= title-len + 3 (" - ") + artist-len
+        max-length = 54;                # hard guard so the pill can't grow the bar
+        player-icons = {
+          default = "";
+          spotify = "󰓇";
+          firefox = "󰈹";
+          chromium = "";
+        };
+        status-icons.paused = "󰏤";
+        tooltip-format = "{title} — {artist}";
+      };
       # Brightness readout. Reads /sys/class/backlight directly and updates live
       # via udev when the XF86MonBrightness keys fire. Scroll on the module to
       # nudge brightness (writes need the video-group perms from the udev rule).

@@ -23,6 +23,11 @@
 
       # Allows proper handling of key combinations in tmux
       set-option -g extended-keys on
+
+      # Drive the outer terminal (Ghostty) title from the active pane, so the
+      # Hyprland window title / caelestia bar shows the dir instead of "t".
+      set -g set-titles on
+      set -g set-titles-string "#{s|$HOME|~|:pane_current_path}"
     '';
 
     plugins = with pkgs.tmuxPlugins; [

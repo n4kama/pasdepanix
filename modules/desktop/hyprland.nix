@@ -6,10 +6,11 @@
   home = config.home.homeDirectory;
   cursor = config.home.pointerCursor;
 in {
-  # Screen locker, bound to 'SUPER+SHIFT+L' below.
-  # Enabling hyprlock here installs it and writes ~/.config/hypr/hyprlock.conf
-  # Authentication relies on the security.pam.services.hyprlock service
-  # declared in the NixOS host config.
+  # Fallback screen locker. SUPER+SHIFT+L now locks via caelestia (below);
+  # hyprlock stays installed as a manual escape hatch (`hyprlock`) in case
+  # caelestia's own PAM auth fails to unlock. It writes ~/.config/hypr/
+  # hyprlock.conf and authenticates via the security.pam.services.hyprlock
+  # service declared in the NixOS host config.
   programs.hyprlock.enable = true;
 
   # Hyprland configuration
@@ -38,7 +39,7 @@ in {
       ];
       exec-once =
         lib.optional cursor.enable "hyprctl setcursor ${cursor.name} ${toString cursor.size}"
-        ++ ["waybar"];
+        ++ ["qs -c caelestia"];
       # Pin the internal panel to its native mode at 1.0x scale (no scaling).
       monitor = [
         "eDP-1, 1920x1080@60, 0x0, 1.0"
@@ -62,7 +63,8 @@ in {
           "SUPER, D, exec, wofi --show drun"
           "SUPER, Q, killactive"
           "SUPER SHIFT, E, exit"
-          "SUPER SHIFT, L, exec, hyprlock" # lock the session
+          "SUPER SHIFT, L, exec, caelestia shell lock lock" # lock via caelestia
+          "SUPER, B, exec, caelestia-bar-toggle" # toggle bar: always-on <-> reveal-on-hover
 
           "SUPER, V, togglefloating"
           "SUPER, F, fullscreen"
@@ -84,6 +86,7 @@ in {
         ]) (builtins.genList (x: x) 9);
       windowrule = [
         "match:class ^(firefox)$, workspace 1"
+        "match:class ^(zen-beta)$, workspace 1"
         "match:class ^(com\\.mitchellh\\.ghostty)$, workspace 2"
         # Firefox Picture-in-Picture: float it and pin so it follows across workspaces.
         "match:title ^(Picture-in-Picture)$, float on"
