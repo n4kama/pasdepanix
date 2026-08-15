@@ -142,18 +142,19 @@ binding = "Option+Shift+S" # dwindle: mirror the split to the other side of the 
 [[hotkeys]]
 id = "toggleFocusedWindowFloating"
 binding = "Option+Shift+Space" # float/un-float the focused window (AeroSpace default)
-# bsp/dwindle resize (hjkl): grow/shrink the right & bottom borders.
+# bsp/dwindle resize (hjkl): grow/shrink along the horizontal & vertical axis.
+# 0.6.1 dropped the eight directional resize actions for two axis-based pairs.
 [[hotkeys]]
-id = "resizeGrow.right"
+id = "resizeGrow.horizontal"
 binding = "Control+Option+L" # wider
 [[hotkeys]]
-id = "resizeShrink.right"
+id = "resizeShrink.horizontal"
 binding = "Control+Option+H" # narrower
 [[hotkeys]]
-id = "resizeGrow.down"
+id = "resizeGrow.vertical"
 binding = "Control+Option+J" # taller
 [[hotkeys]]
-id = "resizeShrink.down"
+id = "resizeShrink.vertical"
 binding = "Control+Option+K" # shorter
 
 # ── Tools ─────────────────────────────────────────────────────────────────
