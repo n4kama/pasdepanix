@@ -3,7 +3,6 @@
   lib,
   ...
 }: let
-  home = config.home.homeDirectory;
   cursor = config.home.pointerCursor;
 in {
   # Fallback screen locker. SUPER+SHIFT+L now locks via caelestia (below);
@@ -60,7 +59,11 @@ in {
         [
           "SUPER, Return, exec, ghostty"
           "SUPER, Tab, workspace, previous" # toggle back-and-forth with the most recently used workspace
-          "SUPER, D, exec, wofi --show drun"
+          # App launcher: caelestia's own launcher drawer, reached through the
+          # `global` dispatcher (the shell registers the caelestia:launcher
+          # shortcut; it does nothing if `qs -c caelestia` isn't running).
+          # Type ">" in it for actions (calc, wallpaper, scheme, ...).
+          "SUPER, D, global, caelestia:launcher"
           "SUPER, Q, killactive"
           "SUPER SHIFT, E, exit"
           "SUPER SHIFT, L, exec, caelestia shell lock lock" # lock via caelestia
@@ -119,25 +122,6 @@ in {
         ", XF86AudioMute, exec, wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
         ", XF86AudioMicMute, exec, wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"
       ];
-    };
-  };
-
-  # Wallpaper daemon (native to Hyprland).
-  # TODO: move the image into the repo (or a stable XDG path) instead of ~/Downloads.
-  services.hyprpaper = {
-    enable = true;
-    settings = {
-      preload = ["${home}/Downloads/space.jpeg"];
-      wallpaper = [
-        {
-          monitor = ""; # Targeting all monitor
-          path = "${home}/Downloads/space.jpeg";
-        }
-      ];
-
-      # Drop the Hyprland version/splash text rendered at the bottom-center over
-      # the wallpaper (visible on empty workspaces).
-      splash = false;
     };
   };
 }
