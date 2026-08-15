@@ -41,19 +41,30 @@
   # name but not as D-Bus-activatable.
   services.playerctld.enable = true;
 
-  # Pin caelestia to Celsius weather and a 24-hour clock. Weather default is
-  # locale-based and this host's LC_MEASUREMENT is en_US (imperial), so it'd
-  # otherwise show Fahrenheit; the clock defaults to 12-hour. shell.json is
-  # runtime-owned (caelestia-bar-toggle rewrites it), so we merge the keys in on
-  # activation rather than letting HM own the file as a read-only symlink —
-  # which would break the toggle and clobber `just switch`.
+  # Pin caelestia to Celsius weather, a 24-hour clock, and per-app workspace
+  # icons. Weather default is locale-based and this host's LC_MEASUREMENT is
+  # en_US (imperial), so it'd otherwise show Fahrenheit; the clock defaults to
+  # 12-hour. windowIcons maps a window class to a Material Symbols name (regex
+  # or exact `name`) — without an entry the icon comes from the app's desktop
+  # entry categories, which misses apps whose class doesn't resolve (zen-beta
+  # ships zen-beta.desktop) and falls back to a terminal glyph. Replacing the
+  # list drops upstream's default, so its steam mapping is repeated here.
+  #
+  # shell.json is runtime-owned (caelestia-bar-toggle rewrites it), so we merge
+  # the keys in on activation rather than letting HM own the file as a read-only
+  # symlink — which would break the toggle and clobber `just switch`.
   home.activation.caelestiaShellDefaults = lib.hm.dag.entryAfter ["writeBoundary"] ''
     cfg="''${XDG_CONFIG_HOME:-$HOME/.config}/caelestia/shell.json"
     run mkdir -p "$(dirname "$cfg")"
     [ -s "$cfg" ] || echo '{}' > "$cfg"
     tmp="$(mktemp)"
     ${pkgs.jq}/bin/jq '.services.useFahrenheit = false
-      | .services.useTwelveHourClock = false' "$cfg" > "$tmp" \
+      | .services.useTwelveHourClock = false
+      | .bar.workspaces.maxWindowIcons = 3
+      | .bar.workspaces.windowIcons = [
+          {regex: "zen-beta", icon: "web"},
+          {regex: "steam(_app_(default|[0-9]+))?", icon: "sports_esports"}
+        ]' "$cfg" > "$tmp" \
       && run mv "$tmp" "$cfg"
   '';
 }
