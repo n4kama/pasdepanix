@@ -59,7 +59,7 @@ in {
       }
       # Autostart apps (macOS-only). One `open -a <App>` agent each; placement on
       # a workspace comes from the app's settings.toml appRule, not from here.
-      (lib.mkIf pkgs.stdenv.isDarwin (lib.listToAttrs (map (app: {
+      (lib.mkIf pkgs.stdenv.hostPlatform.isDarwin (lib.listToAttrs (map (app: {
           name = "omniwm-open-${lib.toLower (lib.replaceStrings [" "] ["-"] app)}";
           value = {
             enable = true;
