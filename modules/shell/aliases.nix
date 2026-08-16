@@ -5,6 +5,7 @@
 {
   c = "clear";
   cl = "claude --continue";
+  d = "cd ~/Downloads";
   dcp = "docker compose";
   gl = "git log";
   gp = "git push";
