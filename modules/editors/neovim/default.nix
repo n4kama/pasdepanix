@@ -15,6 +15,7 @@
 
     # LSP
     nixd # Install manually as not available in Mason (as of 2026-03)
+    rust-analyzer # Install via nix, not Mason, to avoid a second toolchain
     # Treesitter
     tree-sitter
     # Formatters (conform.nvim)
@@ -23,6 +24,7 @@
     prettier
     prettierd
     ruff
+    rustfmt
     stylua
 
     # Neovim
