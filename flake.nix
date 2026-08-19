@@ -22,6 +22,7 @@
       caelestia = ./modules/desktop/caelestia.nix;
       aerospace = ./modules/desktop/aerospace/aerospace.nix;
       sketchybar = ./modules/desktop/sketchybar/sketchybar.nix;
+      tstream = ./modules/tools/tstream/tstream.nix;
     };
   };
 }

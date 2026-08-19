@@ -15,6 +15,8 @@
     ./editors/neovim
     # Desktop
     ./desktop/omniwm/omniwm.nix
+    # Tools
+    ./tools/tstream/tstream.nix
     # ./desktop/aerospace/aerospace.nix   # archived
     # ./desktop/sketchybar/sketchybar.nix # archived — no permanent status bar for now
   ];
