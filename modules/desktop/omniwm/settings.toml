@@ -1,180 +1,40 @@
 # OmniWM configuration — https://github.com/BarutSRB/OmniWM
 #
-# This file is symlinked to ~/.config/omniwm/settings.toml by home-manager
-# (PaNix/home/features/desktop/omniwm/omniwm.nix) so you can edit it here and
-# have changes tracked in the repo.
+# Deployed as a *writable copy* to ~/.config/omniwm/settings.toml by
+# home-manager (see omniwm.nix). The repo wins on every switch.
 #
-# IMPORTANT NOTES (verified against OmniWM source):
-#  - Any key omitted from this file falls back to OmniWM's built-in default,
-#    so this file only needs to contain what you care about. Below we pin the
-#    full hotkey list so every binding is visible and editable.
-#  - The `hotkeys` array is NOT merged with defaults: it is the complete set.
-#    Any action you remove from this list becomes UNBOUND. Edit the existing
-#    lines rather than shipping a partial list.
-#  - Bindings use OmniWM's human-readable format: modifiers joined with "+"
-#    in the order Control+Option+Shift+Command, then the key name.
-#    Examples: "Option+1", "Option+Shift+H", "Control+Option+Space", "Option+Shift+Page Up".
-#  - OmniWM rewrites this file atomically when you change settings in its GUI,
-#    which replaces the symlink with a real file. Prefer editing here by hand;
-#    if you use the in-app Settings UI, copy changes back into this file.
+# IMPORTANT — this must be the COMPLETE schema (OmniWM >= 0.6.3):
+#  - A missing required key invalidates the WHOLE file. OmniWM then preserves
+#    it as settings.toml.corrupt and resets to defaults. Omitted keys do NOT
+#    fall back to built-in defaults any more; that was true up to 0.6.2 only.
+#  - `hotkeys` must list every assignable action EXACTLY ONCE — 169 entries as
+#    of 0.6.4. Unknown, unassignable, missing or duplicate ids invalidate the
+#    file. Unbind with `binding = "Unassigned"`; never delete the entry.
+#  - `schemaVersion` is required. `appRules` and `workspaces` are the only
+#    arrays that need not be exhaustive.
+#
+# => Never hand-write this file from scratch. To change something: edit it
+#    here (safe for values on keys that already exist), or let OmniWM write it
+#    and copy ~/.config/omniwm/settings.toml back over this file. After an
+#    OmniWM release with a schema bump, OmniWM migrates the live file in place
+#    (it is writable now) — copy the migrated result back here.
+#
+# Bindings use OmniWM's human-readable format: modifiers joined with "+" in the
+# order Control+Option+Shift+Command, then the key name.
+# Examples: "Option+1", "Option+Shift+H", "Control+Option+Space".
+#
+# Only deliberate appRules live here (layout / float / workspace assignment).
+# OmniWM's GUI auto-captures a min-window-size rule for every window it sees;
+# those are stripped as noise since they just restate its defaults.
 
-# ── Workspaces ────────────────────────────────────────────────────────────
-# alt-1..9 switch workspace, alt-shift-1..9 move window to workspace
-# (matches the AeroSpace setup that was in use).
-[[hotkeys]]
-id = "switchWorkspace.0"
-binding = "Option+1"
-[[hotkeys]]
-id = "switchWorkspace.1"
-binding = "Option+2"
-[[hotkeys]]
-id = "switchWorkspace.2"
-binding = "Option+3"
-[[hotkeys]]
-id = "switchWorkspace.3"
-binding = "Option+4"
-[[hotkeys]]
-id = "switchWorkspace.4"
-binding = "Option+5"
-[[hotkeys]]
-id = "switchWorkspace.5"
-binding = "Option+6"
-[[hotkeys]]
-id = "switchWorkspace.6"
-binding = "Option+7"
-[[hotkeys]]
-id = "switchWorkspace.7"
-binding = "Option+8"
-[[hotkeys]]
-id = "switchWorkspace.8"
-binding = "Option+9"
+monitorBarOverrides = []
+monitorDwindleOverrides = []
+monitorGapOverrides = []
+monitorNiriOverrides = []
+monitorOrientationOverrides = []
+monitorRoutingOverrides = []
+schemaVersion = 1
 
-[[hotkeys]]
-id = "moveToWorkspace.0"
-binding = "Option+Shift+1"
-[[hotkeys]]
-id = "moveToWorkspace.1"
-binding = "Option+Shift+2"
-[[hotkeys]]
-id = "moveToWorkspace.2"
-binding = "Option+Shift+3"
-[[hotkeys]]
-id = "moveToWorkspace.3"
-binding = "Option+Shift+4"
-[[hotkeys]]
-id = "moveToWorkspace.4"
-binding = "Option+Shift+5"
-[[hotkeys]]
-id = "moveToWorkspace.5"
-binding = "Option+Shift+6"
-[[hotkeys]]
-id = "moveToWorkspace.6"
-binding = "Option+Shift+7"
-[[hotkeys]]
-id = "moveToWorkspace.7"
-binding = "Option+Shift+8"
-[[hotkeys]]
-id = "moveToWorkspace.8"
-binding = "Option+Shift+9"
-
-[[hotkeys]]
-id = "workspaceBackAndForth"
-binding = "Option+Tab"
-
-# ── Focus ─────────────────────────────────────────────────────────────────
-[[hotkeys]]
-id = "focus.left"
-binding = "Option+H"
-[[hotkeys]]
-id = "focus.down"
-binding = "Option+J"
-[[hotkeys]]
-id = "focus.up"
-binding = "Option+K"
-[[hotkeys]]
-id = "focus.right"
-binding = "Option+L"
-[[hotkeys]]
-id = "focusPrevious"
-binding = "Option+Shift+Tab"
-
-# ── Move / arrange windows ────────────────────────────────────────────────
-[[hotkeys]]
-id = "move.left"
-binding = "Option+Shift+H"
-[[hotkeys]]
-id = "move.down"
-binding = "Option+Shift+J"
-[[hotkeys]]
-id = "move.up"
-binding = "Option+Shift+K"
-[[hotkeys]]
-id = "move.right"
-binding = "Option+Shift+L"
-[[hotkeys]]
-id = "moveWindowToWorkspaceUp"
-binding = "Control+Option+Shift+K"
-[[hotkeys]]
-id = "moveWindowToWorkspaceDown"
-binding = "Control+Option+Shift+J"
-
-# ── Monitors ──────────────────────────────────────────────────────────────
-[[hotkeys]]
-id = "focusMonitorNext"
-binding = "Control+Command+Tab"
-[[hotkeys]]
-id = "focusMonitorLast"
-binding = "Control+Command+Grave"
-
-# ── Sizing / layout ───────────────────────────────────────────────────────
-[[hotkeys]]
-id = "toggleFullscreen"
-binding = "Option+F"
-[[hotkeys]]
-id = "balanceSizes"
-binding = "Option+Shift+B"
-[[hotkeys]]
-id = "toggleWorkspaceLayout"
-binding = "Control+Option+Shift+L"
-[[hotkeys]]
-id = "swapSplit"
-binding = "Option+Shift+S" # dwindle: mirror the split to the other side of the screen
-[[hotkeys]]
-id = "toggleFocusedWindowFloating"
-binding = "Option+Shift+Space" # float/un-float the focused window (AeroSpace default)
-# bsp/dwindle resize (hjkl): grow/shrink along the horizontal & vertical axis.
-# 0.6.1 dropped the eight directional resize actions for two axis-based pairs.
-[[hotkeys]]
-id = "resizeGrow.horizontal"
-binding = "Control+Option+L" # wider
-[[hotkeys]]
-id = "resizeShrink.horizontal"
-binding = "Control+Option+H" # narrower
-[[hotkeys]]
-id = "resizeGrow.vertical"
-binding = "Control+Option+J" # taller
-[[hotkeys]]
-id = "resizeShrink.vertical"
-binding = "Control+Option+K" # shorter
-
-# ── Tools ─────────────────────────────────────────────────────────────────
-[[hotkeys]]
-id = "toggleOverview"
-binding = "Option+Shift+O"
-[[hotkeys]]
-id = "openCommandPalette"
-binding = "Control+Option+P" # Control+Option+Space collides with macOS "Select next input source"
-[[hotkeys]]
-id = "openMenuAnywhere"
-binding = "Control+Option+M"
-[[hotkeys]]
-id = "toggleQuakeTerminal"
-binding = "Option+Grave"
-[[hotkeys]]
-id = "raiseAllFloatingWindows"
-binding = "Option+Shift+R"
-
-# ── Settings (from OmniWM GUI state) ──────────────────────────────────────
 [appearance]
 mode = "dark"
 
@@ -206,10 +66,13 @@ useGlobalGaps = true
 crossesMonitorAtEdge = false
 followsMouse = false
 followsWindowToMonitor = false
+lockModifier = "off"
 moveCrossesMonitorAtEdge = false
 moveMouseToFocusedWindow = false
+raiseOnMouseFocus = false
 
 [gaps]
+fullscreenUsesOuterGaps = false
 size = 16.0
 
 [gaps.outer]
@@ -222,6 +85,7 @@ top = 0.0
 animationsEnabled = true
 defaultLayoutType = "dwindle"
 hotkeysEnabled = true
+hyperKeyModifiers = "Control+Option+Shift+Command"
 ipcEnabled = false
 preventSleepEnabled = false
 systemHyperTrigger = "None"
@@ -230,19 +94,69 @@ updateChecksEnabled = true
 [gestures]
 fingerCount = 3
 invertDirection = true
+mouseMoveModifierKey = "option"
 mouseResizeModifierKey = "option"
 scrollEnabled = true
 scrollModifierKey = "optionShift"
 scrollSensitivity = 5.0
 trackpadScrollStyle = "snap"
+workspaceSwipeAxis = "vertical"
+workspaceSwipeEnabled = false
+workspaceSwipeFingerCount = 3
+
+[hiddenBar]
+enabled = true
+hiddenBundleIDs = []
+rehideIntervalSeconds = 5.0
 
 [mouseWarp]
+constrainToArrangement = false
 enabled = false
 margin = 1
+
+[niri]
+alwaysCenterSingleColumn = false
+centerFocusedColumn = "never"
+containerPrimarySpanPresets = [0.3333333333333333, 0.5, 0.6666666666666666]
+defaultContainerPrimarySpan = 0.5
+infiniteLoop = false
+singleWindowFit = "fill"
+visibleContainerCount = 2
+
+[overview]
+zoom = 1.0
+
+[overview.backdrop]
+alpha = 1.0
+blue = 0.08
+green = 0.05
+red = 0.05
+
+[overview.windowBorders]
+
+[overview.windowBorders.hovered]
+alpha = 1.0
+blue = 1.0
+green = 0.6
+red = 0.4
+
+[overview.windowBorders.normal]
+alpha = 0.5
+blue = 0.35
+green = 0.3
+red = 0.3
+
+[overview.windowBorders.selected]
+alpha = 1.0
+blue = 0.4
+green = 0.8
+red = 0.3
 
 [quakeTerminal]
 animationDuration = 0.2
 autoHide = false
+backgroundBlurRadius = 0
+backgroundEffect = "standardBlur"
 enabled = true
 heightPercent = 50.0
 monitorMode = "focusedWindow"
@@ -253,6 +167,10 @@ widthPercent = 50.0
 [routing]
 mode = "macOS"
 
+[scratchpads]
+
+[scratchpads.labels]
+
 [statusBar]
 showAppNames = false
 showWorkspaceName = false
@@ -262,27 +180,707 @@ useWorkspaceId = false
 backgroundOpacity = 0.1
 deduplicateAppIcons = false
 enabled = false
+excludedBundleIDs = []
 height = 24.0
 hideEmptyWorkspaces = false
+hideInNativeFullscreen = false
+notchActiveZoneWidth = 180.0
+notchMode = "moveBelowMenuBar"
 position = "overlappingMenuBar"
 reserveLayoutSpace = false
+revealHoldMilliseconds = 200.0
+revealModifier = "off"
 showFloatingWindows = false
 showLabels = true
+systemStatsButton = false
 windowLevel = "popup"
 xOffset = 0.0
 yOffset = 0.0
 
-# ── Per-app window rules ───────────────────────────────────────────────────
-# Only deliberate rules live here. OmniWM's GUI auto-captures a per-app
-# min-window-size rule for every window it observes; those were stripped since
-# they just restate OmniWM's defaults and add noise. Add a rule only for a
-# behaviour you actually want (layout, float, workspace assignment).
+[workspaceBar.iconOverrides]
+
 [[appRules]]
 assignToWorkspace = "4"
 bundleId = "com.apple.mail"
 id = "C84A9686-37F4-4039-8042-B731FBD406E2"
 
-# ── Workspaces (from OmniWM GUI state) ─────────────────────────────────────
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "toggleScratchpad.1"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "assignFocusedWindowToScratchpad.1"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "toggleScratchpad.2"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "assignFocusedWindowToScratchpad.2"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "toggleScratchpad.3"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "assignFocusedWindowToScratchpad.3"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "toggleScratchpad.4"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "assignFocusedWindowToScratchpad.4"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "toggleScratchpad.5"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "assignFocusedWindowToScratchpad.5"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "toggleScratchpad.6"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "assignFocusedWindowToScratchpad.6"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "toggleScratchpad.7"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "assignFocusedWindowToScratchpad.7"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "toggleScratchpad.8"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "assignFocusedWindowToScratchpad.8"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "toggleScratchpad.9"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "assignFocusedWindowToScratchpad.9"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "toggleScratchpad.10"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "assignFocusedWindowToScratchpad.10"
+
+[[hotkeys]]
+binding = "Option+1"
+id = "switchWorkspace.0"
+
+[[hotkeys]]
+binding = "Option+Shift+1"
+id = "moveToWorkspace.0"
+
+[[hotkeys]]
+binding = "Option+2"
+id = "switchWorkspace.1"
+
+[[hotkeys]]
+binding = "Option+Shift+2"
+id = "moveToWorkspace.1"
+
+[[hotkeys]]
+binding = "Option+3"
+id = "switchWorkspace.2"
+
+[[hotkeys]]
+binding = "Option+Shift+3"
+id = "moveToWorkspace.2"
+
+[[hotkeys]]
+binding = "Option+4"
+id = "switchWorkspace.3"
+
+[[hotkeys]]
+binding = "Option+Shift+4"
+id = "moveToWorkspace.3"
+
+[[hotkeys]]
+binding = "Option+5"
+id = "switchWorkspace.4"
+
+[[hotkeys]]
+binding = "Option+Shift+5"
+id = "moveToWorkspace.4"
+
+[[hotkeys]]
+binding = "Option+6"
+id = "switchWorkspace.5"
+
+[[hotkeys]]
+binding = "Option+Shift+6"
+id = "moveToWorkspace.5"
+
+[[hotkeys]]
+binding = "Option+7"
+id = "switchWorkspace.6"
+
+[[hotkeys]]
+binding = "Option+Shift+7"
+id = "moveToWorkspace.6"
+
+[[hotkeys]]
+binding = "Option+8"
+id = "switchWorkspace.7"
+
+[[hotkeys]]
+binding = "Option+Shift+8"
+id = "moveToWorkspace.7"
+
+[[hotkeys]]
+binding = "Option+9"
+id = "switchWorkspace.8"
+
+[[hotkeys]]
+binding = "Option+Shift+9"
+id = "moveToWorkspace.8"
+
+[[hotkeys]]
+binding = "Option+Tab"
+id = "workspaceBackAndForth"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "switchWorkspace.next"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "switchWorkspace.previous"
+
+[[hotkeys]]
+binding = "Option+H"
+id = "focus.left"
+
+[[hotkeys]]
+binding = "Option+J"
+id = "focus.down"
+
+[[hotkeys]]
+binding = "Option+K"
+id = "focus.up"
+
+[[hotkeys]]
+binding = "Option+L"
+id = "focus.right"
+
+[[hotkeys]]
+binding = "Option+Shift+Tab"
+id = "focusPrevious"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "focusDownOrLeft"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "focusUpOrRight"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "focusWindowTop"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "focusWindowBottom"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "focusWindowDownOrTop"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "focusWindowUpOrBottom"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "focusWindowOrWorkspaceDown"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "focusWindowOrWorkspaceUp"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "centerColumn"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "centerVisibleColumns"
+
+[[hotkeys]]
+binding = "Control+Option+Shift+K"
+id = "moveWindowToWorkspaceUp"
+
+[[hotkeys]]
+binding = "Control+Option+Shift+J"
+id = "moveWindowToWorkspaceDown"
+
+[[hotkeys]]
+binding = "Control+Option+Shift+Page Up"
+id = "moveColumnToWorkspaceUp"
+
+[[hotkeys]]
+binding = "Control+Option+Shift+Page Down"
+id = "moveColumnToWorkspaceDown"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumnToWorkspace.0"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumnToWorkspace.1"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumnToWorkspace.2"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumnToWorkspace.3"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumnToWorkspace.4"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumnToWorkspace.5"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumnToWorkspace.6"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumnToWorkspace.7"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumnToWorkspace.8"
+
+[[hotkeys]]
+binding = "Option+Shift+H"
+id = "move.left"
+
+[[hotkeys]]
+binding = "Option+Shift+J"
+id = "move.down"
+
+[[hotkeys]]
+binding = "Option+Shift+K"
+id = "move.up"
+
+[[hotkeys]]
+binding = "Option+Shift+L"
+id = "move.right"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveWindowDown"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveWindowUp"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveWindowDownOrToWorkspaceDown"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveWindowUpOrToWorkspaceUp"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "consumeWindowIntoColumn"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "expelWindowFromColumn"
+
+[[hotkeys]]
+binding = "Control+Command+Tab"
+id = "focusMonitorNext"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "focusMonitorPrevious"
+
+[[hotkeys]]
+binding = "Control+Command+Grave"
+id = "focusMonitorLast"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveWorkspaceToMonitor.left"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveWorkspaceToMonitor.right"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveWorkspaceToMonitor.up"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveWorkspaceToMonitor.down"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveWindowToMonitor.left"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveWindowToMonitor.right"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveWindowToMonitor.up"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveWindowToMonitor.down"
+
+[[hotkeys]]
+binding = "Option+F"
+id = "toggleFullscreen"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "toggleNativeFullscreen"
+
+[[hotkeys]]
+binding = "Control+Option+Shift+Left Arrow"
+id = "moveColumn.left"
+
+[[hotkeys]]
+binding = "Control+Option+Shift+Right Arrow"
+id = "moveColumn.right"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumn.up"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumn.down"
+
+[[hotkeys]]
+binding = "Control+Option+Home"
+id = "moveColumnToFirst"
+
+[[hotkeys]]
+binding = "Control+Option+End"
+id = "moveColumnToLast"
+
+[[hotkeys]]
+binding = "Option+T"
+id = "toggleColumnTabbed"
+
+[[hotkeys]]
+binding = "Option+Home"
+id = "focusColumnFirst"
+
+[[hotkeys]]
+binding = "Option+End"
+id = "focusColumnLast"
+
+[[hotkeys]]
+binding = "Control+Option+1"
+id = "focusColumn.0"
+
+[[hotkeys]]
+binding = "Control+Option+2"
+id = "focusColumn.1"
+
+[[hotkeys]]
+binding = "Control+Option+3"
+id = "focusColumn.2"
+
+[[hotkeys]]
+binding = "Control+Option+4"
+id = "focusColumn.3"
+
+[[hotkeys]]
+binding = "Control+Option+5"
+id = "focusColumn.4"
+
+[[hotkeys]]
+binding = "Control+Option+6"
+id = "focusColumn.5"
+
+[[hotkeys]]
+binding = "Control+Option+7"
+id = "focusColumn.6"
+
+[[hotkeys]]
+binding = "Control+Option+8"
+id = "focusColumn.7"
+
+[[hotkeys]]
+binding = "Control+Option+9"
+id = "focusColumn.8"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "focusWindowInColumn.1"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "focusWindowInColumn.2"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "focusWindowInColumn.3"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "focusWindowInColumn.4"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "focusWindowInColumn.5"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "focusWindowInColumn.6"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "focusWindowInColumn.7"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "focusWindowInColumn.8"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "focusWindowInColumn.9"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumnToIndex.1"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumnToIndex.2"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumnToIndex.3"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumnToIndex.4"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumnToIndex.5"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumnToIndex.6"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumnToIndex.7"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumnToIndex.8"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveColumnToIndex.9"
+
+[[hotkeys]]
+binding = "Option+Period"
+id = "cycleSizeForward"
+
+[[hotkeys]]
+binding = "Option+Comma"
+id = "cycleSizeBackward"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "cycleWindowPrimarySpanForward"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "cycleWindowPrimarySpanBackward"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "cycleWindowSecondarySpanForward"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "cycleWindowSecondarySpanBackward"
+
+[[hotkeys]]
+binding = "Option+Shift+F"
+id = "toggleContainerFullPrimarySpan"
+
+[[hotkeys]]
+binding = "Control+Option+F"
+id = "expandContainerToAvailablePrimarySpan"
+
+[[hotkeys]]
+binding = "Control+Option+R"
+id = "resetWindowSecondarySpan"
+
+[[hotkeys]]
+binding = "Option+Minus"
+id = "setContainerPrimarySpan.decrease10Percent"
+
+[[hotkeys]]
+binding = "Option+Equal"
+id = "setContainerPrimarySpan.increase10Percent"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "setWindowPrimarySpan.decrease10Percent"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "setWindowPrimarySpan.increase10Percent"
+
+[[hotkeys]]
+binding = "Option+Shift+Minus"
+id = "setWindowSecondarySpan.decrease10Percent"
+
+[[hotkeys]]
+binding = "Option+Shift+Equal"
+id = "setWindowSecondarySpan.increase10Percent"
+
+[[hotkeys]]
+binding = "Option+Shift+B"
+id = "balanceSizes"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveToRoot"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "toggleSplit"
+
+[[hotkeys]]
+binding = "Option+Shift+S"
+id = "swapSplit"
+
+[[hotkeys]]
+binding = "Control+Option+L"
+id = "resizeGrow.horizontal"
+
+[[hotkeys]]
+binding = "Control+Option+J"
+id = "resizeGrow.vertical"
+
+[[hotkeys]]
+binding = "Control+Option+H"
+id = "resizeShrink.horizontal"
+
+[[hotkeys]]
+binding = "Control+Option+K"
+id = "resizeShrink.vertical"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "resizeFocusedWindow.grow"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "resizeFocusedWindow.shrink"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "preselect.left"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "preselect.right"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "preselect.up"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "preselect.down"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "preselectClear"
+
+[[hotkeys]]
+binding = "Control+Option+P"
+id = "openCommandPalette"
+
+[[hotkeys]]
+binding = "Option+Shift+R"
+id = "raiseAllFloatingWindows"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "rescueOffscreenWindows"
+
+[[hotkeys]]
+binding = "Option+Shift+Space"
+id = "toggleFocusedWindowFloating"
+
+[[hotkeys]]
+binding = "Control+Option+M"
+id = "openMenuAnywhere"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "toggleWorkspaceBarVisibility"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "toggleHiddenBarPanel"
+
+[[hotkeys]]
+binding = "Option+Grave"
+id = "toggleQuakeTerminal"
+
+[[hotkeys]]
+binding = "Control+Option+Shift+L"
+id = "toggleWorkspaceLayout"
+
+[[hotkeys]]
+binding = "Option+Shift+O"
+id = "toggleOverview"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "toggleSystemStats"
+
 [[workspaces]]
 id = "AD36F001-C57E-41A5-AC1D-DF5249D007F0"
 layoutType = "dwindle"

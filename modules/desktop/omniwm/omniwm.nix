@@ -10,15 +10,9 @@ in {
   # Installed via homebrew (BarutSRB/tap, cask "omniwm") in the nix-darwin configuration.
   #
   # OmniWM owns settings.toml: it reads it on launch and *rewrites it atomically*
-  # (write-temp then rename) whenever you change a setting in its GUI.
-  #
-  # The repo is the source of truth: settings.toml here is copied into the nix store
-  # and symlinked to ~/.config/omniwm/settings.toml. `force = true` makes every
-  # `just switch` overwrite whatever OmniWM's GUI wrote — the repo wins.
-  #
-  # Trade-off: because this points at the nix store, editing the file no longer
-  # live-reloads in OmniWM; you must edit this file and re-run `just switch`.
-  # This keeps the module portable as a public flake.
+  # (write-temp then rename) on GUI changes and on schema migration between
+  # releases. The repo is still the source of truth — see the activation block
+  # below for the exact semantics.
 
   options.omniwm.autostart = lib.mkOption {
     type = lib.types.listOf lib.types.str;
@@ -37,10 +31,25 @@ in {
   };
 
   config = {
-    home.file.".config/omniwm/settings.toml" = {
-      source = ./settings.toml;
-      force = true;
-    };
+    # settings.toml is installed as a *writable copy*, NOT a nix-store symlink.
+    #
+    # Semantics — the repo still wins on every switch: each activation
+    # overwrites ~/.config/omniwm/settings.toml with the version from this
+    # repo. What OmniWM writes in between (GUI edits, schema migrations)
+    # persists only until the next switch, then gets reverted.
+    #
+    # => To make a lasting change: let OmniWM write it, then copy the result
+    #    back into ./settings.toml and re-apply. After an OmniWM release with a
+    #    schema bump, re-sync the migrated file the same way — it survives on
+    #    disk now, so nothing breaks while you get to it.
+    #
+    # `rm -f` before `install`: install follows an existing symlink and would
+    # otherwise try to write through the old store symlink, which is read-only.
+    home.activation.omniwmSettings = lib.hm.dag.entryAfter ["writeBoundary"] ''
+      run mkdir -p ${lib.escapeShellArg "${config.home.homeDirectory}/.config/omniwm"}
+      run rm -f ${lib.escapeShellArg "${config.home.homeDirectory}/.config/omniwm/settings.toml"}
+      run install -m 0644 ${./settings.toml} ${lib.escapeShellArg "${config.home.homeDirectory}/.config/omniwm/settings.toml"}
+    '';
 
     # OmniWM ships no built-in "start at login" (no SMAppService in the binary), so
     # start it — and any `autostart` apps — from home-manager LaunchAgents instead
