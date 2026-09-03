@@ -7,8 +7,8 @@
 #  - A missing required key invalidates the WHOLE file. OmniWM then preserves
 #    it as settings.toml.corrupt and resets to defaults. Omitted keys do NOT
 #    fall back to built-in defaults any more; that was true up to 0.6.2 only.
-#  - `hotkeys` must list every assignable action EXACTLY ONCE — 169 entries as
-#    of 0.6.4. Unknown, unassignable, missing or duplicate ids invalidate the
+#  - `hotkeys` must list every assignable action EXACTLY ONCE — 188 entries as
+#    of 0.6.5. Unknown, unassignable, missing or duplicate ids invalidate the
 #    file. Unbind with `binding = "Unassigned"`; never delete the entry.
 #  - `schemaVersion` is required. `appRules` and `workspaces` are the only
 #    arrays that need not be exhaustive.
@@ -33,7 +33,7 @@ monitorGapOverrides = []
 monitorNiriOverrides = []
 monitorOrientationOverrides = []
 monitorRoutingOverrides = []
-schemaVersion = 1
+schemaVersion = 2
 
 [appearance]
 mode = "dark"
@@ -204,7 +204,6 @@ assignToWorkspace = "4"
 bundleId = "com.apple.mail"
 id = "C84A9686-37F4-4039-8042-B731FBD406E2"
 
-
 [[hotkeys]]
 binding = "Unassigned"
 id = "toggleScratchpad.1"
@@ -356,6 +355,78 @@ id = "switchWorkspace.8"
 [[hotkeys]]
 binding = "Option+Shift+9"
 id = "moveToWorkspace.8"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "switchWorkspaceSlot.1"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveToWorkspaceSlot.1"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "switchWorkspaceSlot.2"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveToWorkspaceSlot.2"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "switchWorkspaceSlot.3"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveToWorkspaceSlot.3"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "switchWorkspaceSlot.4"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveToWorkspaceSlot.4"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "switchWorkspaceSlot.5"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveToWorkspaceSlot.5"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "switchWorkspaceSlot.6"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveToWorkspaceSlot.6"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "switchWorkspaceSlot.7"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveToWorkspaceSlot.7"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "switchWorkspaceSlot.8"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveToWorkspaceSlot.8"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "switchWorkspaceSlot.9"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "moveToWorkspaceSlot.9"
 
 [[hotkeys]]
 binding = "Option+Tab"
@@ -852,6 +923,10 @@ id = "rescueOffscreenWindows"
 [[hotkeys]]
 binding = "Option+Shift+Space"
 id = "toggleFocusedWindowFloating"
+
+[[hotkeys]]
+binding = "Unassigned"
+id = "closeFocusedWindow"
 
 [[hotkeys]]
 binding = "Control+Option+M"
