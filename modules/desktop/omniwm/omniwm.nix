@@ -7,7 +7,7 @@
   cfg = config.omniwm;
 in {
   # OmniWM - Tiling Window Manager for macOS
-  # Installed via homebrew (BarutSRB/tap, cask "omniwm") in the nix-darwin configuration.
+  # Installed via homebrew (official cask "omniwm") in the nix-darwin configuration.
   #
   # OmniWM owns settings.toml: it reads it on launch and *rewrites it atomically*
   # (write-temp then rename) on GUI changes and on schema migration between
