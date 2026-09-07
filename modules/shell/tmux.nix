@@ -65,8 +65,8 @@ in {
         set -g status-style "bg=default,fg=colour7"
         set -g status-left "#[fg=colour13,bold] #S "
         set -g status-right "#[fg=colour8] #{s|$HOME|~|:pane_current_path} "
-        set -g window-status-format " #{s|$HOME|~|:pane_current_path} "
-        set -g window-status-current-format "#[fg=colour13,bold] #{s|$HOME|~|:pane_current_path} "
+        set -g window-status-format " #{?automatic-rename,#{s|$HOME|~|:pane_current_path},#W} "
+        set -g window-status-current-format "#[fg=colour13,bold] #{?automatic-rename,#{s|$HOME|~|:pane_current_path},#W} "
         set -g pane-border-style "fg=colour8"
         set -g pane-active-border-style "fg=colour13"
         set -g message-style "bg=default,fg=colour13"
@@ -81,9 +81,11 @@ in {
         extraConfig = ''
           set -g @catppuccin_flavor "mocha"
 
-          # Window label shows the directory ($HOME shortened to ~), not the process
-          set -g @catppuccin_window_text " #{s|$HOME|~|:pane_current_path}"
-          set -g @catppuccin_window_current_text " #{s|$HOME|~|:pane_current_path}"
+          # Window label shows the directory ($HOME shortened to ~), not the
+          # process — unless renamed by hand (prefix ,), which turns
+          # automatic-rename off for that window and pins the name.
+          set -g @catppuccin_window_text " #{?automatic-rename,#{s|$HOME|~|:pane_current_path},#W}"
+          set -g @catppuccin_window_current_text " #{?automatic-rename,#{s|$HOME|~|:pane_current_path},#W}"
         '';
       }
       ++ [
