@@ -8,7 +8,7 @@
 #    it as settings.toml.corrupt and resets to defaults. Omitted keys do NOT
 #    fall back to built-in defaults any more; that was true up to 0.6.2 only.
 #  - `hotkeys` must list every assignable action EXACTLY ONCE — 188 entries as
-#    of 0.6.5. Unknown, unassignable, missing or duplicate ids invalidate the
+#    of 0.6.8. Unknown, unassignable, missing or duplicate ids invalidate the
 #    file. Unbind with `binding = "Unassigned"`; never delete the entry.
 #  - `schemaVersion` is required. `appRules` and `workspaces` are the only
 #    arrays that need not be exhaustive.
@@ -18,6 +18,9 @@
 #    and copy ~/.config/omniwm/settings.toml back over this file. After an
 #    OmniWM release with a schema bump, OmniWM migrates the live file in place
 #    (it is writable now) — copy the migrated result back here.
+#    OmniWM keeps the pre-migration bytes as settings.toml.pre-v<N> and shows a
+#    "Settings upgraded" banner until that backup is deleted; delete it once the
+#    migrated file is synced back here.
 #
 # Bindings use OmniWM's human-readable format: modifiers joined with "+" in the
 # order Control+Option+Shift+Command, then the key name.
@@ -32,8 +35,7 @@ monitorDwindleOverrides = []
 monitorGapOverrides = []
 monitorNiriOverrides = []
 monitorOrientationOverrides = []
-monitorRoutingOverrides = []
-schemaVersion = 2
+schemaVersion = 3
 
 [appearance]
 mode = "dark"
@@ -165,6 +167,7 @@ position = "center"
 widthPercent = 50.0
 
 [routing]
+arrangements = []
 mode = "macOS"
 
 [scratchpads]
