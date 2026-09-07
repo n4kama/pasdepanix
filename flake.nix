@@ -23,6 +23,7 @@
       aerospace = ./modules/desktop/aerospace/aerospace.nix;
       sketchybar = ./modules/desktop/sketchybar/sketchybar.nix;
       tstream = ./modules/tools/tstream/tstream.nix;
+      mpv = ./modules/media/mpv.nix;
     };
   };
 }
