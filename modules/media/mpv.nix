@@ -50,11 +50,12 @@
       v = "cycle sub";
       x = "cycle audio";
       c = "cycle video";
-      # Seeking flashes only uosc's timeline, never the whole UI.
-      RIGHT = "seek 5; script-binding uosc/flash-timeline";
-      LEFT = "seek -5; script-binding uosc/flash-timeline";
-      UP = "seek 60; script-binding uosc/flash-timeline";
-      DOWN = "seek -60; script-binding uosc/flash-timeline";
+      # Seeking shows nothing: no uosc timeline flash, and `no-osd` suppresses
+      # the text message mpv would print in place of the disabled osd-bar.
+      RIGHT = "no-osd seek 5";
+      LEFT = "no-osd seek -5";
+      UP = "no-osd seek 60";
+      DOWN = "no-osd seek -60";
       # audio-panel / sub-panel, uosc's track menus.
       X = "script-binding uosc/audio";
       V = "script-binding uosc/subtitles";
