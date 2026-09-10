@@ -1,4 +1,9 @@
 {pkgs, ...}: {
+  # uosc draws its buttons as ligatures from two bundled fonts. mpv loads any
+  # font in `<config>/fonts`, so link them there instead of installing them
+  # system-wide; without this the ligature names show up as literal text.
+  xdg.configFile."mpv/fonts".source = "${pkgs.mpvScripts.uosc}/share/fonts";
+
   programs.mpv = {
     enable = true;
     # uosc: OSC replacement (mpv's stock one is bare). thumbfast: seekbar
