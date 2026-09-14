@@ -17,10 +17,6 @@
   t = "tmux attach || tmux new -s main";
   # Bring back the last continuum/resurrect save (auto-restore is off).
   tt = "tmux start-server; tmux run-shell ${pkgs.tmuxPlugins.resurrect}/share/tmux-plugins/resurrect/scripts/restore.sh; tmux attach";
-  v = "nvim";
-  vi = "nvim";
-  vim = "nvim";
-  vv = "nvim .";
 }
 // pkgs.lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
   tailscale = "/Applications/Tailscale.app/Contents/MacOS/Tailscale";

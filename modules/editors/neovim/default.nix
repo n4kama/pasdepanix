@@ -38,8 +38,10 @@
   };
 
   programs.zsh.shellAliases = {
+    v = "nvim";
     vi = "nvim";
     vim = "nvim";
+    vv = "nvim .";
   };
 
   # Symlink to local nvim-config repo for live editing and git workflow
