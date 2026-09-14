@@ -21,7 +21,6 @@
   vi = "nvim";
   vim = "nvim";
   vv = "nvim .";
-  y = "yazi";
 }
 // pkgs.lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
   tailscale = "/Applications/Tailscale.app/Contents/MacOS/Tailscale";
