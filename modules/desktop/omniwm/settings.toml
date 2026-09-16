@@ -856,11 +856,11 @@ binding = "Option+Shift+B"
 id = "balanceSizes"
 
 [[hotkeys]]
-binding = "Unassigned"
+binding = "Option+Shift+M"
 id = "moveToRoot"
 
 [[hotkeys]]
-binding = "Unassigned"
+binding = "Option+Shift+E"
 id = "toggleSplit"
 
 [[hotkeys]]
