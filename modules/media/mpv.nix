@@ -9,6 +9,10 @@
   # system-wide; without this the ligature names show up as literal text.
   xdg.configFile."mpv/fonts".source = "${pkgs.mpvScripts.uosc}/share/fonts";
 
+  # home-manager passes `programs.mpv.scripts` to the mpv wrapper rather than
+  # this directory, so dropping a file here does not collide with uosc & co.
+  xdg.configFile."mpv/scripts/holdspeed.lua".source = ./holdspeed.lua;
+
   # Finder picks a default app by bundle id, and every copy of mpv is io.mpv.
   # Running `mpv` in a terminal launches the binary inside the store's mpv.app,
   # which makes macOS register that bundle too. With two io.mpv apps the choice
@@ -87,7 +91,10 @@
     bindings = {
       w = "add speed -0.1";
       r = "add speed 0.1";
-      q = "quit-watch-later";
+      # Hold for 5x, release to go back. Quitting is `Q`, mpv's own default
+      # quit-watch-later, so nothing is lost by freeing `q`.
+      q = "script-binding holdspeed/hold-speed";
+      "alt+r" = "script-binding holdspeed/reset-settings";
       v = "cycle sub";
       x = "cycle audio";
       c = "cycle video";
