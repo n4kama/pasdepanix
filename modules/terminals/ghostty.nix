@@ -10,13 +10,14 @@
       # Increased font size to fit my monitor
       font-size = 18;
 
-      # Global terminal hotkeys, macOS only: `cmd` is Super on Linux, where
+      # Global terminal hotkey, macOS only: `cmd` is Super on Linux, where
       # Super+Enter is usually already the WM's own terminal binding.
-      # Both override a Ghostty default (toggle_fullscreen, toggle_split_zoom).
+      # Overrides Ghostty's default cmd+enter (toggle_fullscreen), and
       # `global:` fires only while Ghostty is already running.
+      # The quick terminal is OmniWM's quake terminal instead, on
+      # Shift+Command+Return.
       keybind = lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
         "global:cmd+enter=new_window"
-        "global:cmd+shift+enter=toggle_quick_terminal"
       ];
     };
   };

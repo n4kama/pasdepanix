@@ -949,7 +949,7 @@ binding = "Unassigned"
 id = "toggleHiddenBarPanel"
 
 [[hotkeys]]
-binding = "Unassigned"
+binding = "Shift+Command+Return"
 id = "toggleQuakeTerminal"
 
 [[hotkeys]]
