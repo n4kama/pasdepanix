@@ -33,6 +33,11 @@ func wait<T>(_ call: (@escaping (T) -> Void) -> Void) -> T {
     return result
 }
 
+// EventKit can return "" rather than nil for an empty field (seen on reminder notes).
+func nonEmpty(_ text: String?) -> String? {
+    text?.isEmpty == false ? text : nil
+}
+
 func granted(_ request: (@escaping (Bool, Error?) -> Void) -> Void) -> Bool {
     wait { done in request { ok, _ in done(ok) } }
 }
@@ -60,8 +65,8 @@ func query(_ startDay: String, _ endDay: String) -> [String: Any] {
                 "end": e.isAllDay ? day.string(from: e.endDate) : iso.string(from: e.endDate),
                 "all_day": e.isAllDay,
                 "calendar": e.calendar.title,
-                "location": e.location as Any?,
-                "notes": e.notes as Any?,
+                "location": nonEmpty(e.location) as Any?,
+                "notes": nonEmpty(e.notes) as Any?,
             ].compactMapValues { $0 }
         }
 
@@ -82,7 +87,7 @@ func query(_ startDay: String, _ endDay: String) -> [String: Any] {
                 "list": r.calendar.title,
                 "due": due.map { dateOnly ? day.string(from: $0) : iso.string(from: $0) } as Any?,
                 "overdue": due.map { dateOnly ? $0 < today : $0 < now } ?? false,
-                "notes": r.notes as Any?,
+                "notes": nonEmpty(r.notes) as Any?,
             ].compactMapValues { $0 }
         }
     return ["events": events, "reminders": reminders]
