@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleIdentifier</key>
+  <string>org.pasdepanix.calendar-mcp</string>
+  <key>CFBundleName</key>
+  <string>calendar-mcp</string>
+  <key>CFBundleExecutable</key>
+  <string>calendar-mcp</string>
+  <key>CFBundlePackageType</key>
+  <string>APPL</string>
+  <!-- No Dock icon or menu bar while a query runs. -->
+  <key>LSUIElement</key>
+  <true/>
+  <key>NSCalendarsFullAccessUsageDescription</key>
+  <string>calendar-mcp reads your events to list them to Claude. It never changes them.</string>
+  <key>NSRemindersFullAccessUsageDescription</key>
+  <string>calendar-mcp reads your reminders to list them to Claude. It never changes them.</string>
+</dict>
+</plist>
