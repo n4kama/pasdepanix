@@ -49,6 +49,8 @@
   # entry categories, which misses apps whose class doesn't resolve (zen-beta
   # ships zen-beta.desktop) and falls back to a terminal glyph. Replacing the
   # list drops upstream's default, so its steam mapping is repeated here.
+  # The del() drops the pre-enum useFahrenheit/useTwelveHourClock keys, which
+  # caelestia now flags as unknown ("Config loaded with 2 issues").
   #
   # shell.json is runtime-owned (caelestia-bar-toggle rewrites it), so we merge
   # the keys in on activation rather than letting HM own the file as a read-only
@@ -58,8 +60,9 @@
     run mkdir -p "$(dirname "$cfg")"
     [ -s "$cfg" ] || echo '{}' > "$cfg"
     tmp="$(mktemp)"
-    ${pkgs.jq}/bin/jq '.services.useFahrenheit = false
-      | .services.useTwelveHourClock = false
+    ${pkgs.jq}/bin/jq 'del(.services.useFahrenheit, .services.useTwelveHourClock)
+      | .services.weatherUnits = "Celsius"
+      | .services.clockFormat = "TwentyFourHour"
       | .bar.workspaces.maxWindowIcons = 3
       | .bar.workspaces.windowIcons = [
           {regex: "zen-beta", icon: "web"},
