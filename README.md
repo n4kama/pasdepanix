@@ -39,6 +39,7 @@ Add this flake as an input and import the modules:
 | `caelestia` | [Caelestia shell](https://github.com/caelestia-dots/shell) (bar, launcher, notifications, lock screen) |
 | `aerospace`, `sketchybar`, `waybar`, `mako` | archived, kept for reference |
 | `tstream` | `tstream <magnet>` — streams a torrent into your video player, persisting nothing |
+| `vault-mcp` | Filesystem MCP server for Claude Desktop, read-write in one directory (macOS) |
 
 The Neovim module symlinks `~/.config/nvim` to `~/dev/nvim-config` (a separate
 repo). Adjust that path if yours differs. My neovim config is another git
@@ -46,6 +47,8 @@ repository and is not included in this flake.
 
 The `tstream` module installs its own rqbit/curl/jq but **not** a video player.
 Set `programs.tstream.player` to your player's argv (default `[ "mpv" ]`).
+
+The `vault-mcp` module does nothing until you set `programs.vault-mcp.directory`.
 
 The `hyprland` module relies on two things in your **NixOS host config** that a
 home-manager module cannot set itself:
