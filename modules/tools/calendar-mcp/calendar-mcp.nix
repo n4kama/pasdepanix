@@ -36,21 +36,9 @@
     '';
   };
 in {
-  # Claude Desktop writes its own preferences into claude_desktop_config.json, so
-  # the file cannot be a nix-managed copy. Every switch merges in mcpServers.calendar
-  # alone, pointing at this build's store path; the rest of the file is left as
-  # is. Skipped where Claude Desktop has never run. Restart Claude Desktop to
-  # pick up a new build.
+  # Restart Claude Desktop to pick up a new build.
   home.activation.calendarMcp = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin (
-    lib.hm.dag.entryAfter ["writeBoundary"] ''
-      desktopConfig=${lib.escapeShellArg "${config.home.homeDirectory}/Library/Application Support/Claude/claude_desktop_config.json"}
-      if [ -e "$desktopConfig" ]; then
-        merged=$(mktemp)
-        ${pkgs.jq}/bin/jq \
-          --arg command ${calendar-mcp}/libexec/calendar-mcp.app/Contents/MacOS/calendar-mcp \
-          '.mcpServers.calendar = {command: $command}' "$desktopConfig" > "$merged"
-        run mv "$merged" "$desktopConfig"
-      fi
-    ''
+    import ../claude-desktop-mcp.nix {inherit config lib pkgs;} "calendar"
+    "${calendar-mcp}/libexec/calendar-mcp.app/Contents/MacOS/calendar-mcp"
   );
 }
