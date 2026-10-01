@@ -63,6 +63,7 @@
       | .bar.workspaces.maxWindowIcons = 3
       | .bar.workspaces.windowIcons = [
           {regex: "zen-beta", icon: "web"},
+          {regex: "helium", icon: "web"},
           {regex: "steam(_app_(default|[0-9]+))?", icon: "sports_esports"}
         ]' "$cfg" > "$tmp" \
       && run mv "$tmp" "$cfg"
