@@ -24,6 +24,7 @@
       sketchybar = ./modules/desktop/sketchybar/sketchybar.nix;
       tstream = ./modules/tools/tstream/tstream.nix;
       calendar-mcp = ./modules/tools/calendar-mcp/calendar-mcp.nix;
+      vault-mcp = ./modules/tools/vault-mcp/vault-mcp.nix;
       mpv = ./modules/media/mpv.nix;
     };
   };
