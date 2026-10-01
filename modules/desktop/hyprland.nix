@@ -90,6 +90,7 @@ in {
       windowrule = [
         "match:class ^(firefox)$, workspace 1"
         "match:class ^(zen-beta)$, workspace 1"
+        "match:class ^(helium)$, workspace 1"
         "match:class ^(com\\.mitchellh\\.ghostty)$, workspace 2"
         # Firefox Picture-in-Picture: float it and pin so it follows across workspaces.
         "match:title ^(Picture-in-Picture)$, float on"
