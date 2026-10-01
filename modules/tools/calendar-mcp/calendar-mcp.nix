@@ -36,9 +36,34 @@
     '';
   };
 in {
-  # Restart Claude Desktop to pick up a new build.
+  # Claude Desktop writes its own preferences into claude_desktop_config.json, so
+  # the file cannot be a nix-managed copy. Every switch merges in mcpServers.calendar
+  # alone, pointing at this build's store path; the rest of the file is left as
+  # is. Skipped where Claude Desktop has never run. Restart Claude Desktop to
+  # pick up a new build.
+  #
+  # Desktop reads the file only at a cold start and writes its in-memory copy back
+  # while running, so a merge made while it runs is lost. When the merge changes
+  # the file and Desktop is running, the step says how to apply it. pgrep -a: by
+  # default macOS pgrep skips its ancestors, so it misses Desktop when the switch
+  # runs from Desktop's own terminal.
   home.activation.calendarMcp = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin (
-    import ../claude-desktop-mcp.nix {inherit config lib pkgs;} "calendar"
-    "${calendar-mcp}/libexec/calendar-mcp.app/Contents/MacOS/calendar-mcp"
+    lib.hm.dag.entryAfter ["writeBoundary"] ''
+      desktopConfig=${lib.escapeShellArg "${config.home.homeDirectory}/Library/Application Support/Claude/claude_desktop_config.json"}
+      if [ -e "$desktopConfig" ]; then
+        merged=$(mktemp)
+        ${pkgs.jq}/bin/jq \
+          --arg command ${calendar-mcp}/libexec/calendar-mcp.app/Contents/MacOS/calendar-mcp \
+          '.mcpServers.calendar = {command: $command}' "$desktopConfig" > "$merged"
+        if cmp -s "$merged" "$desktopConfig"; then
+          rm "$merged"
+        else
+          run mv "$merged" "$desktopConfig"
+          if /usr/bin/pgrep -axq Claude; then
+            warnEcho "Claude Desktop is running and will revert mcpServers.calendar. Quit it, run $newGenPath/activate, then relaunch it."
+          fi
+        fi
+      fi
+    ''
   );
 }

@@ -18,7 +18,6 @@
     # Tools
     ./tools/tstream/tstream.nix
     ./tools/calendar-mcp/calendar-mcp.nix
-    ./tools/vault-mcp/vault-mcp.nix
     # Media
     ./media/mpv.nix
     # ./desktop/aerospace/aerospace.nix   # archived
