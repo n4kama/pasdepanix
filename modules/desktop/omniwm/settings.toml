@@ -174,11 +174,11 @@ autoHide = false
 backgroundBlurRadius = 0
 backgroundEffect = "standardBlur"
 enabled = true
-heightPercent = 50.0
+heightPercent = 70.0
 monitorMode = "focusedWindow"
 opacity = 1.0
 position = "center"
-widthPercent = 50.0
+widthPercent = 80.0
 
 [routing]
 arrangements = []
