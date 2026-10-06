@@ -5,7 +5,7 @@
 }: let
   cursor = config.home.pointerCursor;
 in {
-  # Fallback screen locker. SUPER+SHIFT+L now locks via caelestia (below);
+  # Fallback screen locker. SUPER+SHIFT+L locks via caelestia (below);
   # hyprlock stays installed as a manual escape hatch (`hyprlock`) in case
   # caelestia's own PAM auth fails to unlock. It writes ~/.config/hypr/
   # hyprlock.conf and authenticates via the security.pam.services.hyprlock
@@ -95,8 +95,8 @@ in {
         # Firefox Picture-in-Picture: float it and pin so it follows across workspaces.
         "match:title ^(Picture-in-Picture)$, float on"
         "match:title ^(Picture-in-Picture)$, pin on"
-        # Ephemeral floating nmtui launched from the Waybar wifi widget.
-        # Custom class so these rules hit only this window, not every Ghostty;
+        # Floating nmtui: a Ghostty launched with the custom class nmtui.float,
+        # so these rules hit only that window, not every Ghostty;
         # it floats on the current workspace and self-closes when nmtui exits.
         "match:class ^(nmtui\\.float)$, float on"
         "match:class ^(nmtui\\.float)$, center on"
