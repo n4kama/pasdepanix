@@ -35,10 +35,9 @@
     })
   ];
 
-  # Same Firefox-MPRIS fix the old bar needed: playerctld exposes an
-  # activatable D-Bus proxy so MPRIS consumers (Caelestia's dashboard media
-  # widget included) can read browser players — Firefox registers its MPRIS
-  # name but not as D-Bus-activatable.
+  # Firefox MPRIS: playerctld exposes an activatable D-Bus proxy so MPRIS
+  # consumers (Caelestia's dashboard media widget included) can read browser
+  # players — Firefox registers its MPRIS name but not as D-Bus-activatable.
   services.playerctld.enable = true;
 
   # Pin caelestia to Celsius weather, a 24-hour clock, and per-app workspace
@@ -49,8 +48,8 @@
   # entry categories, which misses apps whose class doesn't resolve (zen-beta
   # ships zen-beta.desktop) and falls back to a terminal glyph. Replacing the
   # list drops upstream's default, so its steam mapping is repeated here.
-  # The del() drops the pre-enum useFahrenheit/useTwelveHourClock keys, which
-  # caelestia now flags as unknown ("Config loaded with 2 issues").
+  # The del() drops the useFahrenheit/useTwelveHourClock keys, which caelestia
+  # flags as unknown ("Config loaded with 2 issues").
   #
   # shell.json is runtime-owned (caelestia-bar-toggle rewrites it), so we merge
   # the keys in on activation rather than letting HM own the file as a read-only

@@ -2,8 +2,7 @@
 #
 # Points gpg-agent at a native pinentry so PIN/passphrase prompts work even when
 # the agent is invoked without a controlling terminal (e.g. by SOPS when
-# decrypting YubiKey-encrypted files). Declarative, portable replacement for a
-# hand-written ~/.gnupg/gpg-agent.conf.
+# decrypting YubiKey-encrypted files).
 #
 # Note: hardware bits (YubiKey PINs, on-card keys, touch policy) live on the
 # device, not here; SOPS recipients live in each project's .sops.yaml.
