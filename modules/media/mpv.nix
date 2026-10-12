@@ -3,7 +3,9 @@
   lib,
   pkgs,
   ...
-}: {
+}: let
+  lsregister = "/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister";
+in {
   # uosc draws its buttons as ligatures from two bundled fonts. mpv loads any
   # font in `<config>/fonts`, so link them there instead of installing them
   # system-wide; without this the ligature names show up as literal text.
@@ -20,34 +22,40 @@
   # without the scripts below. So drop every store registration and re-register
   # the copyApps one before setting the handlers.
   home.activation.mpvDefaultApp = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin (
-    lib.hm.dag.entryAfter ["copyApps"] (
-      let
-        lsregister = "/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister";
-      in ''
-        ${lsregister} -dump | sed -n 's|^path: *\(/nix/store/.*/mpv\.app\) (0x.*|\1|p' | sort -u |
-          while read -r app; do
-            # Fails on a path already garbage-collected; nothing to drop then.
-            run ${lsregister} -u "$app" || true
-          done
-        run ${lsregister} -f "$HOME/${config.targets.darwin.copyApps.directory}/mpv.app"
-
-        # Bare names are extensions: duti resolves them the way Finder does, so
-        # `.webm` lands on org.webmproject.webm rather than the io.mpv.webm mpv
-        # declares. Dotted names are UTIs, a fallback for any video or audio type
-        # with no handler of its own. Subtitles are left out: mpv cannot play one
-        # alone, and that group in its Info.plist also claims public.plain-text.
-        mpvTypes=(
-          mkv mk3d mp4 m4v mov webm avi wmv asf flv f4v ts m2ts mts m2t
-          mpg mpeg vob 3gp 3g2 ogv ogm rm rmvb divx xvid dv hevc 264 y4m nsv nuv
-          mp3 flac m4a aac ac3 eac3 dts wav aiff aif caf opus ogg oga mka wma
-          public.movie public.video public.audio
-        )
-        for type in "''${mpvTypes[@]}"; do
-          run ${pkgs.duti}/bin/duti -s io.mpv "$type" all
+    lib.hm.dag.entryAfter ["copyApps"] ''
+      ${lsregister} -dump | sed -n 's|^path: *\(/nix/store/.*/mpv\.app\) (0x.*|\1|p' | sort -u |
+        while read -r app; do
+          # Fails on a path already garbage-collected; nothing to drop then.
+          run ${lsregister} -u "$app" || true
         done
-      ''
-    )
+      run ${lsregister} -f "$HOME/${config.targets.darwin.copyApps.directory}/mpv.app"
+
+      # Bare names are extensions: duti resolves them the way Finder does, so
+      # `.webm` lands on org.webmproject.webm rather than the io.mpv.webm mpv
+      # declares. Dotted names are UTIs, a fallback for any video or audio type
+      # with no handler of its own. Subtitles are left out: mpv cannot play one
+      # alone, and that group in its Info.plist also claims public.plain-text.
+      mpvTypes=(
+        mkv mk3d mp4 m4v mov webm avi wmv asf flv f4v ts m2ts mts m2t
+        mpg mpeg vob 3gp 3g2 ogv ogm rm rmvb divx xvid dv hevc 264 y4m nsv nuv
+        mp3 flac m4a aac ac3 eac3 dts wav aiff aif caf opus ogg oga mka wma
+        public.movie public.video public.audio
+      )
+      for type in "''${mpvTypes[@]}"; do
+        run ${pkgs.duti}/bin/duti -s io.mpv "$type" all
+      done
+    ''
   );
+
+  # The same registration happens on every `mpv` run from a shell, long after
+  # activation. This `mpv` shadows the one on PATH and drops the store bundle
+  # again when the player exits, so Finder keeps opening the copyApps app.
+  home.packages = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin [
+    (lib.hiPrio (pkgs.writeShellScriptBin "mpv" ''
+      trap '${lsregister} -u ${config.programs.mpv.finalPackage.unwrapped}/Applications/mpv.app' EXIT
+      ${config.programs.mpv.finalPackage}/bin/mpv "$@"
+    ''))
+  ];
 
   programs.mpv = {
     enable = true;
