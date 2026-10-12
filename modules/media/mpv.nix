@@ -66,6 +66,13 @@
       vo = "gpu-next";
       # Portable: videotoolbox on darwin, vaapi/nvdec on linux.
       hwdec = "auto-safe";
+      # TEMPORARY, mpv 0.41.0 only: remove when mpv is updated past 0.41.0,
+      # which carries the fix (mpv-player/mpv#18383). On macOS 27 the coreaudio
+      # AO leaves its device-change listener registered on freed memory, and
+      # mpv segfaults in hotplug_cb whenever an audio device appears or
+      # disappears. avfoundation never registers that listener.
+      # https://github.com/mpv-player/mpv/issues/18274
+      ao = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin "avfoundation";
       # Keeps aspect ratio when going fullscreen
       # Needed when using omniwm on macos
       keepaspect-window = false;
