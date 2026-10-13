@@ -52,6 +52,10 @@ in {
       # New tabs open immediately, like tmux windows; rename with prefix+shift+t.
       ui.prompt_new_tab_name = false;
 
+      # Claude Code state changes in background workspaces play no sound;
+      # other agents keep herdr's default.
+      ui.sound.agents.claude = "off";
+
       keys = {
         prefix = "ctrl+space";
 
