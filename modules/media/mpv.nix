@@ -5,21 +5,62 @@
   ...
 }: let
   lsregister = "/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister";
+
+  # TEMPORARY, mpv 0.41.0 only: remove when mpv is updated past 0.41.0,
+  # which carries these two commits (mpv-player/mpv#18383). On macOS 27 the
+  # coreaudio AO fails to start on some channel layouts and leaves its
+  # device-change listener registered on freed memory, so mpv segfaults in
+  # hotplug_cb whenever an audio device appears or disappears. While this is
+  # here, darwin builds mpv from source instead of using the cache.
+  # https://github.com/mpv-player/mpv/issues/18274
+  mpv-unwrapped =
+    if pkgs.stdenv.hostPlatform.isDarwin
+    then
+      pkgs.mpv-unwrapped.overrideAttrs (old: {
+        patches =
+          (old.patches or [])
+          ++ [
+            (pkgs.fetchpatch {
+              name = "ao_coreaudio-cleanup-ao-on-init-failure.patch";
+              url = "https://github.com/mpv-player/mpv/commit/af067b5ea8.patch";
+              hash = "sha256-jKyFxK4bf+7v2iPsMnNNaf3JqgqdMl+3u/XZe5R3Wf0=";
+            })
+            (pkgs.fetchpatch {
+              name = "ao_coreaudio-register-hotplug-after-init.patch";
+              url = "https://github.com/mpv-player/mpv/commit/c5d391adba.patch";
+              hash = "sha256-cRUy0TiNGDwv9wpCiglHajNJGgLFH1FBffUK2h3J4OI=";
+            })
+          ];
+      })
+    else pkgs.mpv-unwrapped;
+
+  # uosc: OSC replacement (mpv's stock one is bare). thumbfast: seekbar
+  # thumbnail previews, which uosc picks up automatically when present; it
+  # renders them in a second mpv from its PATH, given the same build here.
+  scripts = [
+    pkgs.mpvScripts.uosc
+    (pkgs.mpvScripts.thumbfast.override {inherit mpv-unwrapped;})
+    # Queue the rest of the folder when a file is opened, so episodes chain.
+    pkgs.mpvScripts.autoload
+    # Recently played menu on `h` (its own default binding), drawn by uosc
+    # when it is loaded. IINA's Open Recent.
+    pkgs.mpvScripts.memo
+  ];
 in {
   # uosc draws its buttons as ligatures from two bundled fonts. mpv loads any
   # font in `<config>/fonts`, so link them there instead of installing them
   # system-wide; without this the ligature names show up as literal text.
   xdg.configFile."mpv/fonts".source = "${pkgs.mpvScripts.uosc}/share/fonts";
 
-  # home-manager passes `programs.mpv.scripts` to the mpv wrapper rather than
-  # this directory, so dropping a file here does not collide with uosc & co.
+  # The scripts list above goes to the mpv wrapper rather than this directory,
+  # so dropping a file here does not collide with uosc & co.
   xdg.configFile."mpv/scripts/holdspeed.lua".source = ./holdspeed.lua;
 
   # Finder picks a default app by bundle id, and every copy of mpv is io.mpv.
   # Running `mpv` in a terminal launches the binary inside the store's mpv.app,
   # which makes macOS register that bundle too. With two io.mpv apps the choice
   # is arbitrary, and after a rebuild it can land on the store copy, which runs
-  # without the scripts below. So drop every store registration and re-register
+  # without the scripts above. So drop every store registration and re-register
   # the copyApps one before setting the handlers.
   home.activation.mpvDefaultApp = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin (
     lib.hm.dag.entryAfter ["copyApps"] ''
@@ -59,28 +100,16 @@ in {
 
   programs.mpv = {
     enable = true;
-    # uosc: OSC replacement (mpv's stock one is bare). thumbfast: seekbar
-    # thumbnail previews, which uosc picks up automatically when present.
-    scripts = [
-      pkgs.mpvScripts.uosc
-      pkgs.mpvScripts.thumbfast
-      # Queue the rest of the folder when a file is opened, so episodes chain.
-      pkgs.mpvScripts.autoload
-      # Recently played menu on `h` (its own default binding), drawn by uosc
-      # when it is loaded. IINA's Open Recent.
-      pkgs.mpvScripts.memo
-    ];
+    package = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin (pkgs.mpv.override {
+      inherit scripts mpv-unwrapped;
+    });
+    # home-manager accepts either `package` or `scripts`, so darwin's patched
+    # package above carries the scripts itself.
+    scripts = lib.mkIf (!pkgs.stdenv.hostPlatform.isDarwin) scripts;
     config = {
       vo = "gpu-next";
       # Portable: videotoolbox on darwin, vaapi/nvdec on linux.
       hwdec = "auto-safe";
-      # TEMPORARY, mpv 0.41.0 only: remove when mpv is updated past 0.41.0,
-      # which carries the fix (mpv-player/mpv#18383). On macOS 27 the coreaudio
-      # AO leaves its device-change listener registered on freed memory, and
-      # mpv segfaults in hotplug_cb whenever an audio device appears or
-      # disappears. avfoundation never registers that listener.
-      # https://github.com/mpv-player/mpv/issues/18274
-      ao = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin "avfoundation";
       # Keeps aspect ratio when going fullscreen
       # Needed when using omniwm on macos
       keepaspect-window = false;
