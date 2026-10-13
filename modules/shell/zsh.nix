@@ -37,11 +37,6 @@
       # Case-insensitive matching (foo -> Foo)
       zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
 
-      # Reminder to use tmux
-      if [ -z "$TMUX" ]; then
-        echo "💡 Note to self: 't' joins tmux · 'tt' restores the last saved session"
-      fi
-
       # Starship prompt (home-manager's own zsh integration is disabled below).
       # `starship init` looks *itself* up in PATH and bakes the resulting
       # absolute path into $PROMPT. With ~/.nix-profile/bin ahead of
