@@ -6,6 +6,7 @@
     # Shell
     ./shell/zsh.nix
     ./shell/tmux.nix
+    ./shell/herdr.nix
     ./shell/zoxide.nix
     # Terminal
     ./terminals/ghostty.nix
