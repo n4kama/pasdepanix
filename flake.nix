@@ -13,6 +13,7 @@
 
       zsh = ./modules/shell/zsh.nix;
       tmux = ./modules/shell/tmux.nix;
+      herdr = ./modules/shell/herdr.nix;
       zoxide = ./modules/shell/zoxide.nix;
       ghostty = ./modules/terminals/ghostty.nix;
       gpg = ./modules/gpg.nix;
