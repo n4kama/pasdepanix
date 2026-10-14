@@ -4,12 +4,13 @@
   pkgs,
   ...
 }: let
-  # calendar-mcp — read-only MCP server listing macOS Calendar events and
-  # Reminders to Claude Desktop, through EventKit instead of screenshots of
-  # Calendar.app. It must run as an app bundle of its own; main.swift says why.
+  # calendar-mcp — MCP server that lists macOS Calendar events and Reminders to
+  # Claude Code and creates new ones, through EventKit instead of screenshots
+  # of Calendar.app. It cannot change or delete existing ones. It must run as an
+  # app bundle of its own; main.swift says why.
   calendar-mcp = pkgs.stdenv.mkDerivation {
     pname = "calendar-mcp";
-    version = "1.0";
+    version = "1.1";
     src = lib.fileset.toSource {
       root = ./.;
       fileset = lib.fileset.unions [./main.swift ./Info.plist];
@@ -36,34 +37,29 @@
     '';
   };
 in {
-  # Claude Desktop writes its own preferences into claude_desktop_config.json, so
-  # the file cannot be a nix-managed copy. Every switch merges in mcpServers.calendar
-  # alone, pointing at this build's store path; the rest of the file is left as
-  # is. Skipped where Claude Desktop has never run. Restart Claude Desktop to
-  # pick up a new build.
-  #
-  # Desktop reads the file only at a cold start and writes its in-memory copy back
-  # while running, so a merge made while it runs is lost. When the merge changes
-  # the file and Desktop is running, the step says how to apply it. pgrep -a: by
-  # default macOS pgrep skips its ancestors, so it misses Desktop when the switch
-  # runs from Desktop's own terminal.
-  home.activation.calendarMcp = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin (
-    lib.hm.dag.entryAfter ["writeBoundary"] ''
-      desktopConfig=${lib.escapeShellArg "${config.home.homeDirectory}/Library/Application Support/Claude/claude_desktop_config.json"}
-      if [ -e "$desktopConfig" ]; then
+  config = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
+    # A fixed path for Claude Code to launch, so a new build needs no change to
+    # ~/.claude.json: the symlink follows the store path.
+    xdg.dataFile."calendar-mcp.app".source = "${calendar-mcp}/libexec/calendar-mcp.app";
+
+    # Claude Code keeps its own state in ~/.claude.json, so the file cannot be a
+    # nix-managed copy. Every switch merges in mcpServers.calendar alone (user
+    # scope: every project) and leaves the rest of the file as is, which also
+    # restores the entry if it went missing. Skipped where Claude Code has never
+    # run. A session picks up the server when it starts.
+    home.activation.calendarMcp = lib.hm.dag.entryAfter ["linkGeneration"] ''
+      claudeConfig=${lib.escapeShellArg "${config.home.homeDirectory}/.claude.json"}
+      if [ -e "$claudeConfig" ]; then
         merged=$(mktemp)
         ${pkgs.jq}/bin/jq \
-          --arg command ${calendar-mcp}/libexec/calendar-mcp.app/Contents/MacOS/calendar-mcp \
-          '.mcpServers.calendar = {command: $command}' "$desktopConfig" > "$merged"
-        if cmp -s "$merged" "$desktopConfig"; then
+          --arg command ${lib.escapeShellArg "${config.xdg.dataHome}/calendar-mcp.app/Contents/MacOS/calendar-mcp"} \
+          '.mcpServers.calendar = {type: "stdio", command: $command, args: []}' "$claudeConfig" > "$merged"
+        if cmp -s "$merged" "$claudeConfig"; then
           rm "$merged"
         else
-          run mv "$merged" "$desktopConfig"
-          if /usr/bin/pgrep -axq Claude; then
-            warnEcho "Claude Desktop is running and will revert mcpServers.calendar. Quit it, run $newGenPath/activate, then relaunch it."
-          fi
+          run mv "$merged" "$claudeConfig"
         fi
       fi
-    ''
-  );
+    '';
+  };
 }

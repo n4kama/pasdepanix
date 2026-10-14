@@ -14,8 +14,8 @@
   <key>LSUIElement</key>
   <true/>
   <key>NSCalendarsFullAccessUsageDescription</key>
-  <string>calendar-mcp reads your events to list them to Claude. It never changes them.</string>
+  <string>calendar-mcp lists your events to Claude and adds the ones Claude creates. It never changes or deletes existing ones.</string>
   <key>NSRemindersFullAccessUsageDescription</key>
-  <string>calendar-mcp reads your reminders to list them to Claude. It never changes them.</string>
+  <string>calendar-mcp lists your reminders to Claude and adds the ones Claude creates. It never changes or deletes existing ones.</string>
 </dict>
 </plist>
