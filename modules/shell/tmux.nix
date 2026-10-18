@@ -36,18 +36,26 @@
   fzfPopup = "--reverse --no-sort --border=none --info=inline-right";
 
   # prefix s: switch to another open session, most recently used first,
-  # previewing its active pane.
+  # previewing its active pane. ctrl-x kills the highlighted session.
+  # `list <session id>` prints the sessions other than that one, for fzf's
+  # reload.
   tmux-pick-session = pkgs.writeShellApplication {
     name = "tmux-pick-session";
     runtimeInputs = [pkgs.tmux pkgs.fzf pkgs.gawk pkgs.coreutils];
     text = ''
       tab=$'\t'
-      current="$(tmux display-message -p '#{session_id}')"
-      choice="$(
+      if [ "''${1:-}" = list ]; then
         tmux list-sessions -F "#{session_last_attached}$tab#{session_id}$tab#{session_name}$tab#{session_windows}w" |
           sort -rn |
-          awk -F'\t' -v OFS='\t' -v c="$current" '$2 != c { print $2, $3, $4 }' |
+          awk -F'\t' -v OFS='\t' -v c="$2" '$2 != c { print $2, $3, $4 }'
+        exit 0
+      fi
+      current="$(tmux display-message -p '#{session_id}')"
+      choice="$(
+        "$0" list "$current" |
           fzf ${fzfPopup} --delimiter='\t' --with-nth=2.. \
+            --footer 'ctrl-x: kill session' \
+            --bind "ctrl-x:execute-silent(tmux kill-session -t {1})+reload('$0' list '$current')" \
             --preview 'tmux capture-pane -ep -t {1}' --preview-window=right,60%
       )" || exit 0
       tmux switch-client -t "''${choice%%"$tab"*}"
@@ -56,11 +64,20 @@
 
   # prefix o: pick a directory (the current pane's first, then zoxide's
   # frecency list) and switch to its session, creating it if needed.
+  # prefix X (--kill-current): the same, then kills the session it came from.
+  # Escape kills nothing, and neither does picking the current session's
+  # directory.
   tmux-pick-dir = pkgs.writeShellApplication {
     name = "tmux-pick-dir";
-    runtimeInputs = [pkgs.zoxide pkgs.fzf pkgs.gawk];
+    runtimeInputs = [pkgs.tmux pkgs.zoxide pkgs.fzf pkgs.gawk];
     excludeShellChecks = ["SC2088"];
     text = ''
+      current=""
+      header=()
+      if [ "''${1:-}" = --kill-current ]; then
+        current="$(tmux display-message -p '#{session_id}')"
+        header=(--header "kill $(tmux display-message -p '#{session_name}') → pick a directory")
+      fi
       choice="$(
         { printf '%s\n' "$PWD"; zoxide query -l; } |
           awk -v h="$HOME" '!seen[$0]++ {
@@ -68,13 +85,17 @@
             else if (index($0, h "/") == 1) print "~" substr($0, length(h) + 1)
             else print
           }' |
-          fzf ${fzfPopup}
+          fzf ${fzfPopup} "''${header[@]}"
       )" || exit 0
       case "$choice" in
         "~") choice="$HOME" ;;
         "~/"*) choice="$HOME/''${choice#"~/"}" ;;
       esac
-      exec ${lib.getExe tmux-session} "$choice"
+      [ -n "$current" ] || exec ${lib.getExe tmux-session} "$choice"
+      ${lib.getExe tmux-session} "$choice"
+      if [ "$(tmux display-message -p -t "$current" '#{session_attached}')" = 0 ]; then
+        tmux kill-session -t "$current"
+      fi
     '';
   };
 
@@ -223,6 +244,7 @@ in {
       # The built-in session tree stays on prefix w.
       bind s display-popup -E -w 80% -h 70% "${lib.getExe tmux-pick-session}"
       bind o display-popup -E -w 60% -h 60% -d "#{pane_current_path}" "${lib.getExe tmux-pick-dir}"
+      bind X display-popup -E -w 60% -h 60% -d "#{pane_current_path}" "${lib.getExe tmux-pick-dir} --kill-current"
       bind a display-popup -E -w 90% -h 80% "${lib.getExe tmux-pick-claude}"
     ''
       + lib.optionalString (cfg.theme == "terminal") ''
