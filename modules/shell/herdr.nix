@@ -24,6 +24,19 @@
     '';
   };
 
+  # Fuzzy workspace switcher: type to filter, Enter focuses, Esc cancels.
+  herdr-workspace-pick = pkgs.writeShellApplication {
+    name = "herdr-workspace-pick";
+    runtimeInputs = [pkgs.jq pkgs.fzf pkgs.herdr];
+    text = ''
+      id=$(herdr workspace list \
+        | jq -r '.result.workspaces[] | "\(.workspace_id)\t\(.number)  \(.label)  [\(.agent_status)]"' \
+        | fzf --delimiter='\t' --with-nth=2 --reverse --prompt='workspace> ' \
+        | cut -f1) || exit 0
+      herdr workspace focus "$id" >/dev/null
+    '';
+  };
+
   navigate = key: dir: {
     inherit key;
     type = "shell";
@@ -70,11 +83,23 @@ in {
         focus_pane_up = "prefix+up";
         focus_pane_right = "prefix+right";
 
+        # prefix+s is the fuzzy workspace picker below; built-in actions take
+        # precedence over custom commands, so settings moves off it.
+        settings = "prefix+shift+s";
+
         command = [
           (navigate "ctrl+h" "left")
           (navigate "ctrl+j" "down")
           (navigate "ctrl+k" "up")
           (navigate "ctrl+l" "right")
+          {
+            key = "prefix+s";
+            type = "popup";
+            command = lib.getExe herdr-workspace-pick;
+            description = "fuzzy-switch workspace";
+            width = "50%";
+            height = "40%";
+          }
         ];
       };
     };
