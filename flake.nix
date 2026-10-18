@@ -17,8 +17,6 @@
       omniwm = ./modules/desktop/omniwm/omniwm.nix;
       hyprland = ./modules/desktop/hyprland.nix;
       caelestia = ./modules/desktop/caelestia.nix;
-      aerospace = ./modules/desktop/aerospace/aerospace.nix;
-      sketchybar = ./modules/desktop/sketchybar/sketchybar.nix;
       tstream = ./modules/tools/tstream/tstream.nix;
       calendar-mcp = ./modules/tools/calendar-mcp/calendar-mcp.nix;
       mpv = ./modules/media/mpv.nix;

@@ -37,7 +37,6 @@ Add this flake as an input and import the modules:
 | `omniwm` | OmniWM tiling WM (macOS) |
 | `hyprland` | Hyprland session: binds, hyprpaper wallpaper, hyprlock (Linux/Wayland) |
 | `caelestia` | [Caelestia shell](https://github.com/caelestia-dots/shell) (bar, launcher, notifications, lock screen) |
-| `aerospace`, `sketchybar`, `waybar`, `mako` | archived, kept for reference |
 | `tstream` | `tstream <magnet>` — streams a torrent into your video player, persisting nothing |
 
 The Neovim module symlinks `~/.config/nvim` to `~/dev/nvim-config` (a separate
@@ -86,6 +85,3 @@ both:
 
 Without the second import, `programs.caelestia.enable = true;` fails at eval
 time — the option won't exist yet.
-
-`default` imports the actively-used modules; `aerospace`, `sketchybar`,
-`waybar`, and `mako` are archived and not imported by `default`.
