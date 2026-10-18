@@ -11,11 +11,23 @@
   # "~/..." under $HOME; ":" becomes "_" because tmux reads it as the
   # session:window separator. Targets end in ":" so a "." in the name is not
   # read as window.pane.
+  # With no argument and no server running, it starts the server instead,
+  # which runs continuum's restore without creating a session of its own, and
+  # attaches to the session resurrect saved as active. Nothing restored: plain
+  # `tmux`.
   tmux-session = pkgs.writeShellApplication {
     name = "tmux-session";
-    runtimeInputs = [pkgs.tmux];
+    runtimeInputs = [pkgs.tmux pkgs.gawk];
     excludeShellChecks = ["SC2088"];
     text = ''
+      if [ $# -eq 0 ] && ! tmux has-session 2>/dev/null; then
+        tmux start-server
+        tmux has-session 2>/dev/null || exec tmux
+        res="$(tmux show -gqv @resurrect-dir)"
+        session="$(awk -F'\t' '$1 == "state" { print $2 }' "''${res:-$HOME/.tmux/resurrect}/last" 2>/dev/null)" || true
+        tmux has-session -t "=$session:" 2>/dev/null || session=""
+        exec tmux attach ''${session:+-t "=$session:"}
+      fi
       dir="$(cd -- "''${1:-$PWD}" && pwd)"
       case "$dir" in
         "$HOME") name="~" ;;
@@ -209,15 +221,16 @@ in {
   config.programs.tmux = {
     enable = true;
 
+    # Start windows and panes at 1, not 0. Set here so it lands at the top of
+    # tmux.conf: continuum's restore runs while the plugins load, before
+    # extraConfig, and must create the panes with the saved indexes.
+    baseIndex = 1;
+
     extraConfig =
       ''
       # Enable mouse
       set -g mouse on
 
-      # Start windows and panes at 1, not 0
-      set -g base-index 1
-      set -g pane-base-index 1
-      set-window-option -g pane-base-index 1
       set-option -g renumber-windows on
 
       # Set prefix
