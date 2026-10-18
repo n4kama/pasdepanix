@@ -20,7 +20,7 @@ in {
     example = ["Mail" "Discord"];
     description = ''
       App names (as passed to `open -a`, e.g. "Mail") to launch at login via a
-      per-app LaunchAgent. macOS-only: ignored on other platforms.
+      per-app LaunchAgent. Ignored on other platforms, like the whole module.
 
       Defaults to Mail. To disable, set `omniwm.autostart = [];`; to change it,
       assign your own list. Which *workspace* an app lands on is separate and
@@ -30,7 +30,8 @@ in {
     '';
   };
 
-  config = {
+  # macOS only: on another platform the module defines its option and nothing else.
+  config = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
     # settings.toml is installed as a *writable copy*, NOT a nix-store symlink.
     #
     # Semantics — the repo still wins on every switch: each activation
@@ -66,9 +67,9 @@ in {
           };
         };
       }
-      # Autostart apps (macOS-only). One `open -a <App>` agent each; placement on
-      # a workspace comes from the app's settings.toml appRule, not from here.
-      (lib.mkIf pkgs.stdenv.hostPlatform.isDarwin (lib.listToAttrs (map (app: {
+      # Autostart apps. One `open -a <App>` agent each; placement on a workspace
+      # comes from the app's settings.toml appRule, not from here.
+      (lib.listToAttrs (map (app: {
           name = "omniwm-open-${lib.toLower (lib.replaceStrings [" "] ["-"] app)}";
           value = {
             enable = true;
@@ -78,7 +79,7 @@ in {
             };
           };
         })
-        cfg.autostart)))
+        cfg.autostart))
     ];
   };
 }
