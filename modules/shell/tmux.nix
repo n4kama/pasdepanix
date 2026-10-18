@@ -47,6 +47,13 @@
 
   fzfPopup = "--reverse --no-sort --border=none --info=inline-right";
 
+  # Window label: the directory ($HOME shortened to ~), or the conversation
+  # name when the active pane runs Claude Code (@claude set) and has named it.
+  # Claude's pane title is "<status glyph> <name>", "Claude Code" until named.
+  # A window renamed by hand (prefix ,) has automatic-rename off and keeps #W.
+  claudeTitle = "s|^[^ ]* ||:pane_title";
+  windowLabel = "#{?automatic-rename,#{?#{&&:#{@claude},#{!=:#{${claudeTitle}},Claude Code}},#{=/30/…;${claudeTitle}},#{s|$HOME|~|:pane_current_path}},#W}";
+
   # prefix s: switch to another open session, most recently used first,
   # previewing its active pane. ctrl-x kills the highlighted session.
   # `list <session id>` prints the sessions other than that one, for fzf's
@@ -269,8 +276,8 @@ in {
         set -g status-style "bg=default,fg=colour7"
         set -g status-left "#[fg=colour13,bold] #S "
         set -g status-right "#[fg=colour8] #{s|$HOME|~|:pane_current_path} "
-        set -g window-status-format " #{?automatic-rename,#{s|$HOME|~|:pane_current_path},#W} "
-        set -g window-status-current-format "#[fg=colour13,bold] #{?automatic-rename,#{s|$HOME|~|:pane_current_path},#W} "
+        set -g window-status-format " ${windowLabel} "
+        set -g window-status-current-format "#[fg=colour13,bold] ${windowLabel} "
         set -g pane-border-style "fg=colour8"
         set -g pane-active-border-style "fg=colour13"
         set -g message-style "bg=default,fg=colour13"
@@ -285,11 +292,9 @@ in {
         extraConfig = ''
           set -g @catppuccin_flavor "mocha"
 
-          # Window label shows the directory ($HOME shortened to ~), not the
-          # process — unless renamed by hand (prefix ,), which turns
-          # automatic-rename off for that window and pins the name.
-          set -g @catppuccin_window_text " #{?automatic-rename,#{s|$HOME|~|:pane_current_path},#W}"
-          set -g @catppuccin_window_current_text " #{?automatic-rename,#{s|$HOME|~|:pane_current_path},#W}"
+          # Window label: see windowLabel.
+          set -g @catppuccin_window_text " ${windowLabel}"
+          set -g @catppuccin_window_current_text " ${windowLabel}"
         '';
       }
       ++ [
