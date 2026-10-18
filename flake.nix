@@ -4,7 +4,7 @@
   outputs = {self, ...}: {
     # A single aggregate module, plus each module individually so consumers can
     # cherry-pick. No secrets, no identity, no host-specific values.
-    homeManagerModules = {
+    homeModules = {
       default = import ./modules;
 
       zsh = ./modules/shell/zsh.nix;

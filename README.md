@@ -15,11 +15,11 @@ Add this flake as an input and import the modules:
   inputs.pasdepanix.url = "<URL>";
 
   # in a home-manager configuration:
-  imports = [ inputs.pasdepanix.homeManagerModules.default ];
+  imports = [ inputs.pasdepanix.homeModules.default ];
   # ...or cherry-pick:
   imports = [
-    inputs.pasdepanix.homeManagerModules.tmux
-    inputs.pasdepanix.homeManagerModules.neovim
+    inputs.pasdepanix.homeModules.tmux
+    inputs.pasdepanix.homeModules.neovim
   ];
 }
 ```
@@ -77,7 +77,7 @@ both:
 
   # in a home-manager configuration:
   imports = [
-    inputs.pasdepanix.homeManagerModules.caelestia
+    inputs.pasdepanix.homeModules.caelestia
     inputs.caelestia-shell.homeManagerModules.default
   ];
 }
