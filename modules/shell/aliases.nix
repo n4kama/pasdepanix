@@ -1,7 +1,4 @@
-{
-  pkgs,
-  ...
-}:
+{pkgs, ...}:
 {
   c = "clear";
   cl = "claude --resume";

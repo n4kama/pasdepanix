@@ -246,38 +246,38 @@ in {
 
     extraConfig =
       ''
-      # Enable mouse
-      set -g mouse on
+        # Enable mouse
+        set -g mouse on
 
-      set-option -g renumber-windows on
+        set-option -g renumber-windows on
 
-      # Set prefix
-      unbind C-b
-      set -g prefix C-Space
-      bind C-space send-prefix
+        # Set prefix
+        unbind C-b
+        set -g prefix C-Space
+        bind C-space send-prefix
 
-      # Open panes in the current directory
-      bind v split-window -v -c "#{pane_current_path}"
-      bind h split-window -h -c "#{pane_current_path}"
+        # Open panes in the current directory
+        bind v split-window -v -c "#{pane_current_path}"
+        bind h split-window -h -c "#{pane_current_path}"
 
-      # Allows proper handling of key combinations in tmux
-      set-option -g extended-keys on
+        # Allows proper handling of key combinations in tmux
+        set-option -g extended-keys on
 
-      # Drive the outer terminal (Ghostty) title from the active pane, so the
-      # Hyprland window title / caelestia bar shows the dir instead of "t".
-      set -g set-titles on
-      set -g set-titles-string "#{s|$HOME|~|:pane_current_path}"
+        # Drive the outer terminal (Ghostty) title from the active pane, so the
+        # Hyprland window title / caelestia bar shows the dir instead of "t".
+        set -g set-titles on
+        set -g set-titles-string "#{s|$HOME|~|:pane_current_path}"
 
-      # Room for path-named sessions in the status line (default: 10).
-      set -g status-left-length 60
+        # Room for path-named sessions in the status line (default: 10).
+        set -g status-left-length 60
 
-      # Pickers: open sessions, directories (new session), Claude Code panes.
-      # The built-in session tree stays on prefix w.
-      bind s display-popup -E -w 80% -h 70% "${lib.getExe tmux-pick-session}"
-      bind o display-popup -E -w 60% -h 60% -d "#{pane_current_path}" "${lib.getExe tmux-pick-dir}"
-      bind X display-popup -E -w 60% -h 60% -d "#{pane_current_path}" "${lib.getExe tmux-pick-dir} --kill-current"
-      bind a display-popup -E -w 90% -h 80% "${lib.getExe tmux-pick-claude}"
-    ''
+        # Pickers: open sessions, directories (new session), Claude Code panes.
+        # The built-in session tree stays on prefix w.
+        bind s display-popup -E -w 80% -h 70% "${lib.getExe tmux-pick-session}"
+        bind o display-popup -E -w 60% -h 60% -d "#{pane_current_path}" "${lib.getExe tmux-pick-dir}"
+        bind X display-popup -E -w 60% -h 60% -d "#{pane_current_path}" "${lib.getExe tmux-pick-dir} --kill-current"
+        bind a display-popup -E -w 90% -h 80% "${lib.getExe tmux-pick-claude}"
+      ''
       + lib.optionalString (cfg.theme == "terminal") ''
         # ANSI slots only — no hex — so a caelestia scheme change repaints this
         # along with everything else in the terminal. `default` keeps the
@@ -309,22 +309,22 @@ in {
         '';
       }
       ++ [
-      sensible
-      vim-tmux-navigator
-      resurrect
-      {
-        # Continuum saves every 2 min and restores when the server starts;
-        # `touch ~/tmux_no_auto_restore` skips the restore. Claude panes are
-        # resumed by the resurrect hooks.
-        plugin = continuum;
-        extraConfig = ''
-          set -g @resurrect-capture-pane-contents 'on'
-          set -g @resurrect-hook-post-save-all '${lib.getExe tmux-claude-resume} save'
-          set -g @resurrect-hook-post-restore-all '${lib.getExe tmux-claude-resume} restore'
-          set -g @continuum-restore 'on'
-          set -g @continuum-save-interval '2'
-        '';
-      }
-    ];
+        sensible
+        vim-tmux-navigator
+        resurrect
+        {
+          # Continuum saves every 2 min and restores when the server starts;
+          # `touch ~/tmux_no_auto_restore` skips the restore. Claude panes are
+          # resumed by the resurrect hooks.
+          plugin = continuum;
+          extraConfig = ''
+            set -g @resurrect-capture-pane-contents 'on'
+            set -g @resurrect-hook-post-save-all '${lib.getExe tmux-claude-resume} save'
+            set -g @resurrect-hook-post-restore-all '${lib.getExe tmux-claude-resume} restore'
+            set -g @continuum-restore 'on'
+            set -g @continuum-save-interval '2'
+          '';
+        }
+      ];
   };
 }
