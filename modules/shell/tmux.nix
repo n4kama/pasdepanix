@@ -11,22 +11,25 @@
   # "~/..." under $HOME; ":" becomes "_" because tmux reads it as the
   # session:window separator. Targets end in ":" so a "." in the name is not
   # read as window.pane.
-  # With no argument and no server running, it starts the server instead,
-  # which runs continuum's restore without creating a session of its own, and
-  # attaches to the session resurrect saved as active. Nothing restored: plain
-  # `tmux`.
+  # With no argument it creates nothing: it opens the session picker, first
+  # starting the server if needed, which runs continuum's restore without
+  # creating a session of its own and lists the session resurrect saved as
+  # active first. Nothing restored: the session for $PWD.
   tmux-session = pkgs.writeShellApplication {
     name = "tmux-session";
     runtimeInputs = [pkgs.tmux pkgs.gawk];
     excludeShellChecks = ["SC2088"];
     text = ''
-      if [ $# -eq 0 ] && ! tmux has-session 2>/dev/null; then
+      if [ $# -eq 0 ]; then
+        if tmux has-session 2>/dev/null; then
+          exec ${lib.getExe tmux-pick-session}
+        fi
         tmux start-server
-        tmux has-session 2>/dev/null || exec tmux
-        res="$(tmux show -gqv @resurrect-dir)"
-        session="$(awk -F'\t' '$1 == "state" { print $2 }' "''${res:-$HOME/.tmux/resurrect}/last" 2>/dev/null)" || true
-        tmux has-session -t "=$session:" 2>/dev/null || session=""
-        exec tmux attach ''${session:+-t "=$session:"}
+        if tmux has-session 2>/dev/null; then
+          res="$(tmux show -gqv @resurrect-dir)"
+          session="$(awk -F'\t' '$1 == "state" { print $2 }' "''${res:-$HOME/.tmux/resurrect}/last" 2>/dev/null)" || true
+          exec ${lib.getExe tmux-pick-session} "$session"
+        fi
       fi
       dir="$(cd -- "''${1:-$PWD}" && pwd)"
       case "$dir" in
@@ -54,10 +57,11 @@
   claudeTitle = "s|^[^ ]* ||:pane_title";
   windowLabel = "#{?automatic-rename,#{?#{&&:#{@claude},#{!=:#{${claudeTitle}},Claude Code}},#{=/30/…;${claudeTitle}},#{s|$HOME|~|:pane_current_path}},#W}";
 
-  # prefix s: switch to another open session, most recently used first,
-  # previewing its active pane. ctrl-x kills the highlighted session.
-  # `list <session id>` prints the sessions other than that one, for fzf's
-  # reload.
+  # prefix s / bare `t`: switch to (outside tmux: attach to) another open
+  # session, most recently used first, previewing its active pane. ctrl-x
+  # kills the highlighted session. An optional session name is listed first.
+  # `list <session id> [name]` prints the sessions other than that one, for
+  # fzf's reload.
   tmux-pick-session = pkgs.writeShellApplication {
     name = "tmux-pick-session";
     runtimeInputs = [pkgs.tmux pkgs.fzf pkgs.gawk pkgs.coreutils];
@@ -65,19 +69,26 @@
       tab=$'\t'
       if [ "''${1:-}" = list ]; then
         tmux list-sessions -F "#{session_last_attached}$tab#{session_id}$tab#{session_name}$tab#{session_windows}w" |
-          sort -rn |
-          awk -F'\t' -v OFS='\t' -v c="$2" '$2 != c { print $2, $3, $4 }'
+          awk -F'\t' -v OFS='\t' -v c="$2" -v t="''${3:-}" '$2 != c { print ($3 == t ? "9999999999" : $1 + 0), $2, $3, $4 }' |
+          sort -s -t "$tab" -k1,1rn |
+          cut -f2-
         exit 0
       fi
-      current="$(tmux display-message -p '#{session_id}')"
+      first="''${1:-}"
+      current=""
+      if [ -n "''${TMUX:-}" ]; then current="$(tmux display-message -p '#{session_id}')"; fi
       choice="$(
-        "$0" list "$current" |
+        "$0" list "$current" "$first" |
           fzf ${fzfPopup} --delimiter='\t' --with-nth=2.. \
             --footer 'ctrl-x: kill session' \
-            --bind "ctrl-x:execute-silent(tmux kill-session -t {1})+reload('$0' list '$current')" \
+            --bind "ctrl-x:execute-silent(tmux kill-session -t {1})+reload('$0' list '$current' '$first')" \
             --preview 'tmux capture-pane -ep -t {1}' --preview-window=right,60%
       )" || exit 0
-      tmux switch-client -t "''${choice%%"$tab"*}"
+      if [ -n "$current" ]; then
+        tmux switch-client -t "''${choice%%"$tab"*}"
+      else
+        exec tmux attach-session -t "''${choice%%"$tab"*}"
+      fi
     '';
   };
 
