@@ -26,7 +26,12 @@
       # inherited HOMEBREW_PATH already starting with the prefix, which happens
       # when a shell (or a tmux server) descends from a running brew process.
       # Dropping the var forces shellenv to emit the real PATH export.
-      [[ -x /opt/homebrew/bin/brew ]] && eval "$(env -u HOMEBREW_PATH /opt/homebrew/bin/brew shellenv)"
+      # shellenv prepends brew's bin dirs; they move to the end so a binary nix
+      # also provides resolves to nix's.
+      if [[ -x /opt/homebrew/bin/brew ]]; then
+        eval "$(env -u HOMEBREW_PATH /opt/homebrew/bin/brew shellenv)"
+        path=(''${path:#/opt/homebrew/(bin|sbin)} /opt/homebrew/bin /opt/homebrew/sbin)
+      fi
       source ~/.orbstack/shell/init.zsh 2>/dev/null || :
     '';
 
