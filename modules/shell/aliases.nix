@@ -4,7 +4,7 @@
 }:
 {
   c = "clear";
-  cl = "claude --continue";
+  cl = "claude --resume";
   d = "cd ~/Downloads";
   dcp = "docker compose";
   gl = "git log";
