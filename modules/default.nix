@@ -21,7 +21,5 @@
     ./tools/calendar-mcp/calendar-mcp.nix
     # Media
     ./media/mpv.nix
-    # ./desktop/aerospace/aerospace.nix   # archived
-    # ./desktop/sketchybar/sketchybar.nix # archived — no permanent status bar for now
   ];
 }
