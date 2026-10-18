@@ -44,14 +44,11 @@
 
       # Starship prompt (home-manager's own zsh integration is disabled below).
       # `starship init` looks *itself* up in PATH and bakes the resulting
-      # absolute path into $PROMPT. With ~/.nix-profile/bin ahead of
-      # /etc/profiles/per-user on PATH, a shell started after `just hm` bakes
-      # ~/.nix-profile/bin/starship — and the next `just switch` writes an empty
-      # user-environment into that profile (useUserPackages puts packages in
-      # /etc/profiles instead), so the path dies under every running shell:
-      #   zsh: no such file or directory: ~/.nix-profile/bin/starship
-      # $PROMPT is a plain string, so rehash can't help; only a new shell can.
-      # Emptying PATH makes starship fall back to its immutable store path.
+      # absolute path into $PROMPT. A profile path (~/.nix-profile/bin,
+      # /etc/profiles/per-user) can stop holding starship after a switch, and
+      # every running shell then fails with "no such file or directory";
+      # $PROMPT is a plain string, so rehash can't help. Emptying PATH makes
+      # starship fall back to its immutable store path.
       if [[ $TERM != "dumb" ]]; then
         eval "$(PATH= ${lib.getExe config.programs.starship.package} init zsh)"
       fi
