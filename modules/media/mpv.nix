@@ -57,11 +57,10 @@ in {
   xdg.configFile."mpv/scripts/holdspeed.lua".source = ./holdspeed.lua;
 
   # Finder picks a default app by bundle id, and every copy of mpv is io.mpv.
-  # Running `mpv` in a terminal launches the binary inside the store's mpv.app,
-  # which makes macOS register that bundle too. With two io.mpv apps the choice
-  # is arbitrary, and after a rebuild it can land on the store copy, which runs
-  # without the scripts above. So drop every store registration and re-register
-  # the copyApps one before setting the handlers.
+  # Running mpv registers the store bundle its binary lives in, so several
+  # io.mpv apps pile up across rebuilds, some of them garbage-collected. Drop
+  # every store registration and re-register the copyApps one before setting
+  # the handlers, so Finder resolves io.mpv to the app in ~/Applications.
   home.activation.mpvDefaultApp = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin (
     lib.hm.dag.entryAfter ["copyApps"] ''
       ${lsregister} -dump | sed -n 's|^path: *\(/nix/store/.*/mpv\.app\) (0x.*|\1|p' | sort -u |
@@ -88,21 +87,39 @@ in {
     ''
   );
 
-  # The same registration happens on every `mpv` run from a shell, long after
-  # activation. This `mpv` shadows the one on PATH and drops the store bundle
-  # again when the player exits, so Finder keeps opening the copyApps app.
+  # The wrapper's `bin/mpv` execs the unwrapped bundle, which macOS would
+  # register as a script-less io.mpv. This `mpv` shadows it and goes through
+  # the app instead, whose binary sits in the wrapper's own bundle.
   home.packages = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin [
     (lib.hiPrio (pkgs.writeShellScriptBin "mpv" ''
-      trap '${lsregister} -u ${config.programs.mpv.finalPackage.unwrapped}/Applications/mpv.app' EXIT
-      ${config.programs.mpv.finalPackage}/bin/mpv "$@"
+      exec ${config.programs.mpv.finalPackage}/Applications/mpv.app/Contents/MacOS/mpv "$@"
     ''))
   ];
 
   programs.mpv = {
     enable = true;
-    package = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin (pkgs.mpv.override {
-      inherit scripts mpv-unwrapped;
-    });
+    # Running a binary that lives inside an .app makes macOS register that
+    # .app. The stock wrapper execs the binary inside the unwrapped bundle,
+    # so every launch, Finder's included, registers a second io.mpv that
+    # starts without the scripts. Copying the binary into the wrapper's own
+    # bundle means any io.mpv macOS registers is one that loads them.
+    package = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin (
+      (pkgs.mpv.override {inherit scripts mpv-unwrapped;}).overrideAttrs (old: let
+        stock = ''makeWrapper "${mpv-unwrapped}/Applications/mpv.app/Contents/MacOS/mpv"'';
+        own = "$out/Applications/mpv.app/Contents/MacOS/mpv-unwrapped";
+        # symlinkJoin bakes postBuild into buildCommand, so patch it there.
+        buildCommand =
+          builtins.replaceStrings [stock] [
+            ''
+              cp ${mpv-unwrapped}/Applications/mpv.app/Contents/MacOS/mpv "${own}"
+              makeWrapper "${own}"''
+          ]
+          old.buildCommand;
+      in
+        assert lib.assertMsg (buildCommand != old.buildCommand) "mpv wrapper changed: the darwin bundle patch no longer applies"; {
+          inherit buildCommand;
+        })
+    );
     # home-manager accepts either `package` or `scripts`, so darwin's patched
     # package above carries the scripts itself.
     scripts = lib.mkIf (!pkgs.stdenv.hostPlatform.isDarwin) scripts;
