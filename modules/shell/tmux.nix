@@ -32,7 +32,7 @@
   # its own, and lists the session resurrect saved as active first. Nothing
   # restored: the session for $PWD.
   #
-  # `tmux-session --kill-current` (prefix X): the picker, then kills the
+  # `tmux-session --kill-current` (prefix S): the picker, then kills the
   # session it came from. Escape kills nothing.
   #
   # --list, --preview and --kill are the picker's own fzf callbacks.
@@ -283,7 +283,7 @@ in {
         # Pickers: sessions and directories, Claude Code panes.
         # The built-in session tree stays on prefix w.
         bind s display-popup -E -w 80% -h 70% -d "#{pane_current_path}" "${lib.getExe tmux-session}"
-        bind X display-popup -E -w 80% -h 70% -d "#{pane_current_path}" "${lib.getExe tmux-session} --kill-current"
+        bind S display-popup -E -w 80% -h 70% -d "#{pane_current_path}" "${lib.getExe tmux-session} --kill-current"
         bind a display-popup -E -w 90% -h 80% "${lib.getExe tmux-pick-claude}"
       ''
       + lib.optionalString (cfg.theme == "terminal") ''
