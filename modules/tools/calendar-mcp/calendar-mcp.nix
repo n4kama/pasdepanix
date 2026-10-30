@@ -5,12 +5,12 @@
   ...
 }: let
   # calendar-mcp — MCP server that lists macOS Calendar events and Reminders to
-  # Claude Code and creates new ones, through EventKit instead of screenshots
-  # of Calendar.app. It cannot change or delete existing ones. It must run as an
-  # app bundle of its own; main.swift says why.
+  # Claude Code, creates new ones and moves an event to other dates, through
+  # EventKit instead of screenshots of Calendar.app. It deletes nothing. It must
+  # run as an app bundle of its own; main.swift says why.
   calendar-mcp = pkgs.stdenv.mkDerivation {
     pname = "calendar-mcp";
-    version = "1.1";
+    version = "1.2";
     src = lib.fileset.toSource {
       root = ./.;
       fileset = lib.fileset.unions [./main.swift ./Info.plist];

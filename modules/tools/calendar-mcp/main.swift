@@ -1,7 +1,7 @@
 // calendar-mcp: MCP server (stdio) for macOS Calendar events and Reminders. It
-// lists them (list_events) and creates new ones (create_event, create_reminder).
-// It never changes or deletes an existing event or reminder: there is no tool
-// for it.
+// lists them (list_events), creates new ones (create_event, create_reminder),
+// and moves an event to other dates (update_event). It never deletes anything,
+// and changes nothing else of an existing event or reminder.
 //
 // macOS grants calendar access only to an app whose Info.plist declares it, and
 // charges a child process to its parent app: spawned by an MCP client, it
@@ -14,6 +14,7 @@
 //   calendar-mcp --query START END          one query, JSON on stdout (run by `open`)
 //   calendar-mcp --create-event JSON        one creation, JSON on stdout (run by `open`)
 //   calendar-mcp --create-reminder JSON
+//   calendar-mcp --update-event JSON
 
 import EventKit
 import Foundation
@@ -81,6 +82,7 @@ func target(_ store: EKEventStore, _ type: EKEntityType, _ name: String?) throws
 func eventInfo(_ e: EKEvent) -> [String: Any] {
     let alerts = (e.alarms ?? []).filter { $0.absoluteDate == nil }.map { Int(-$0.relativeOffset / 60) }
     return [
+        "id": e.eventIdentifier as Any?,
         "title": e.title ?? "",
         "start": e.isAllDay ? day.string(from: e.startDate) : iso.string(from: e.startDate),
         "end": e.isAllDay ? day.string(from: e.endDate) : iso.string(from: e.endDate),
@@ -136,18 +138,30 @@ func query(_ startDay: String, _ endDay: String) -> [String: Any] {
     return ["events": events, "reminders": reminders]
 }
 
-func createEvent(_ input: [String: Any]) -> [String: Any] {
-    guard let title = nonEmpty(input["title"] as? String) else { return ["error": "title is required"] }
+// The dates of an event from the input's start, end and all_day: days for an
+// all-day event (end inclusive, the start day by default), times otherwise
+// (end 1 hour after the start by default).
+func timing(_ input: [String: Any]) -> Result<(start: Date, end: Date, allDay: Bool), Refusal> {
     let allDay = input["all_day"] as? Bool ?? false
     guard let start = (input["start"] as? String).flatMap(parseTime), start.dateOnly == allDay else {
-        return ["error": allDay ? "an all-day event needs start as YYYY-MM-DD" : "start must be a time, YYYY-MM-DDTHH:MM"]
+        return .failure(Refusal(reason: allDay ? "an all-day event needs start as YYYY-MM-DD" : "start must be a time, YYYY-MM-DDTHH:MM"))
     }
     var end = allDay ? start.date : start.date.addingTimeInterval(3600)
     if let endText = input["end"] as? String {
         guard let parsed = parseTime(endText), parsed.dateOnly == allDay, parsed.date >= start.date else {
-            return ["error": "end must have the same form as start, and not come before it"]
+            return .failure(Refusal(reason: "end must have the same form as start, and not come before it"))
         }
         end = parsed.date
+    }
+    return .success((start.date, end, allDay))
+}
+
+func createEvent(_ input: [String: Any]) -> [String: Any] {
+    guard let title = nonEmpty(input["title"] as? String) else { return ["error": "title is required"] }
+    let when: (start: Date, end: Date, allDay: Bool)
+    switch timing(input) {
+    case .success(let t): when = t
+    case .failure(let refusal): return ["error": refusal.reason]
     }
     let store = EKEventStore()
     guard granted(store.requestFullAccessToEvents) else { return accessDenied }
@@ -157,9 +171,9 @@ func createEvent(_ input: [String: Any]) -> [String: Any] {
     let event = EKEvent(eventStore: store)
     event.calendar = calendar
     event.title = title
-    event.isAllDay = allDay
-    event.startDate = start.date
-    event.endDate = end
+    event.isAllDay = when.allDay
+    event.startDate = when.start
+    event.endDate = when.end
     event.location = input["location"] as? String
     event.notes = input["notes"] as? String
     event.url = (input["url"] as? String).flatMap(URL.init(string:))
@@ -168,6 +182,27 @@ func createEvent(_ input: [String: Any]) -> [String: Any] {
     }
     do { try store.save(event, span: .thisEvent, commit: true) } catch { return ["error": "cannot save the event: \(error.localizedDescription)"] }
     return ["created": eventInfo(event)]
+}
+
+// Moves the event `id` (from list_events) to new dates. A recurring event
+// changes only in the occurrence that id names.
+func updateEvent(_ input: [String: Any]) -> [String: Any] {
+    guard let id = nonEmpty(input["id"] as? String) else { return ["error": "id is required"] }
+    let when: (start: Date, end: Date, allDay: Bool)
+    switch timing(input) {
+    case .success(let t): when = t
+    case .failure(let refusal): return ["error": refusal.reason]
+    }
+    let store = EKEventStore()
+    guard granted(store.requestFullAccessToEvents) else { return accessDenied }
+    guard let event = store.event(withIdentifier: id) else { return ["error": "no event with id \(id)"] }
+    guard event.calendar.allowsContentModifications else { return ["error": "the calendar \"\(event.calendar.title)\" is read-only"] }
+
+    event.isAllDay = when.allDay
+    event.startDate = when.start
+    event.endDate = when.end
+    do { try store.save(event, span: .thisEvent, commit: true) } catch { return ["error": "cannot save the event: \(error.localizedDescription)"] }
+    return ["updated": eventInfo(event)]
 }
 
 // A due time also sets an alert at that time, as the Reminders app does:
@@ -206,10 +241,10 @@ if args.count == 4, args[1] == "--query" {
     FileHandle.standardOutput.write(json(query(args[2], args[3])))
     exit(0)
 }
-let creators = ["--create-event": createEvent, "--create-reminder": createReminder]
-if args.count == 3, let create = creators[args[1]] {
+let writers = ["--create-event": createEvent, "--create-reminder": createReminder, "--update-event": updateEvent]
+if args.count == 3, let write = writers[args[1]] {
     let input = (try? JSONSerialization.jsonObject(with: Data(args[2].utf8))) as? [String: Any] ?? [:]
-    FileHandle.standardOutput.write(json(create(input)))
+    FileHandle.standardOutput.write(json(write(input)))
     exit(0)
 }
 
@@ -254,8 +289,7 @@ let tools: [[String: Any]] = [
         "name": "create_event",
         "description": """
             Create a new macOS Calendar event, in the default calendar for new events unless \
-            `calendar` names another. Returns the event as saved. Only creates: it cannot \
-            change or delete an event.
+            `calendar` names another. Returns the event as saved.
             """,
         "inputSchema": [
             "type": "object",
@@ -271,6 +305,24 @@ let tools: [[String: Any]] = [
                 "calendar": ["type": "string", "description": "Calendar name. Omit to use the default calendar."],
             ],
             "required": ["title", "start"],
+        ],
+    ],
+    [
+        "name": "update_event",
+        "description": """
+            Move an existing macOS Calendar event to new dates. Takes the event's id from \
+            list_events, and start, end and all_day as create_event does. Changes nothing \
+            else of the event. Returns the event as saved.
+            """,
+        "inputSchema": [
+            "type": "object",
+            "properties": [
+                "id": ["type": "string", "description": "The event's id, from list_events."],
+                "start": ["type": "string", "description": "Start: \(timeFormat); YYYY-MM-DD for an all-day event."],
+                "end": ["type": "string", "description": "End, same form as start. Defaults to 1 hour after start, or to the start day for an all-day event (inclusive)."],
+                "all_day": ["type": "boolean", "description": "Defaults to false."],
+            ],
+            "required": ["id", "start"],
         ],
     ],
     [
@@ -308,6 +360,8 @@ func operation(_ name: String?, _ input: [String: Any]) -> [String]? {
         return ["--create-event", String(decoding: json(input), as: UTF8.self)]
     case "create_reminder":
         return ["--create-reminder", String(decoding: json(input), as: UTF8.self)]
+    case "update_event":
+        return ["--update-event", String(decoding: json(input), as: UTF8.self)]
     default:
         return nil
     }
@@ -324,7 +378,7 @@ while let line = readLine() {
         result = [
             "protocolVersion": params["protocolVersion"] ?? "2025-06-18",
             "capabilities": ["tools": [String: Any]()],
-            "serverInfo": ["name": "calendar-mcp", "version": "1.1"],
+            "serverInfo": ["name": "calendar-mcp", "version": "1.2"],
         ]
     case "ping":
         result = [:]
