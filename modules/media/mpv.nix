@@ -61,11 +61,13 @@ in {
   # io.mpv apps pile up across rebuilds, some of them garbage-collected. Drop
   # every store registration and re-register the copyApps one before setting
   # the handlers, so Finder resolves io.mpv to the app in ~/Applications.
+  # NSWorkspace lists the io.mpv registrations in ~0.1s; `lsregister -dump`
+  # takes seconds.
   home.activation.mpvDefaultApp = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin (
     lib.hm.dag.entryAfter ["copyApps"] ''
-      ${lsregister} -dump | sed -n 's|^path: *\(/nix/store/.*/mpv\.app\) (0x.*|\1|p' | sort -u |
+      /usr/bin/osascript -l JavaScript -e 'ObjC.import("AppKit"); ObjC.unwrap($.NSWorkspace.sharedWorkspace.URLsForApplicationsWithBundleIdentifier("io.mpv")).map(u => u.path.js).join("\n")' |
+        sed -n '\|^/nix/store/|p' |
         while read -r app; do
-          # Fails on a path already garbage-collected; nothing to drop then.
           run ${lsregister} -u "$app" || true
         done
       run ${lsregister} -f "$HOME/${config.targets.darwin.copyApps.directory}/mpv.app"
