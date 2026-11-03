@@ -16,6 +16,10 @@
       # Increased font size to fit my monitor
       font-size = 18;
 
+      # Start directory for windows that do not inherit one from a focused
+      # Ghostty window (window-inherit-working-directory stays on).
+      working-directory = "${config.home.homeDirectory}/Downloads";
+
       # Global terminal hotkey, macOS only: `cmd` is Super on Linux, where
       # Super+Enter is usually already the WM's own terminal binding.
       # Overrides Ghostty's default cmd+enter (toggle_fullscreen), and
