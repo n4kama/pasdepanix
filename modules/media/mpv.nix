@@ -6,40 +6,11 @@
 }: let
   lsregister = "/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister";
 
-  # TEMPORARY, mpv 0.41.0 only: remove when mpv is updated past 0.41.0,
-  # which carries these two commits (mpv-player/mpv#18383). On macOS 27 the
-  # coreaudio AO fails to start on some channel layouts and leaves its
-  # device-change listener registered on freed memory, so mpv segfaults in
-  # hotplug_cb whenever an audio device appears or disappears. While this is
-  # here, darwin builds mpv from source instead of using the cache.
-  # https://github.com/mpv-player/mpv/issues/18274
-  mpv-unwrapped =
-    if pkgs.stdenv.hostPlatform.isDarwin
-    then
-      pkgs.mpv-unwrapped.overrideAttrs (old: {
-        patches =
-          (old.patches or [])
-          ++ [
-            (pkgs.fetchpatch {
-              name = "ao_coreaudio-cleanup-ao-on-init-failure.patch";
-              url = "https://github.com/mpv-player/mpv/commit/af067b5ea8.patch";
-              hash = "sha256-jKyFxK4bf+7v2iPsMnNNaf3JqgqdMl+3u/XZe5R3Wf0=";
-            })
-            (pkgs.fetchpatch {
-              name = "ao_coreaudio-register-hotplug-after-init.patch";
-              url = "https://github.com/mpv-player/mpv/commit/c5d391adba.patch";
-              hash = "sha256-cRUy0TiNGDwv9wpCiglHajNJGgLFH1FBffUK2h3J4OI=";
-            })
-          ];
-      })
-    else pkgs.mpv-unwrapped;
-
   # uosc: OSC replacement (mpv's stock one is bare). thumbfast: seekbar
-  # thumbnail previews, which uosc picks up automatically when present; it
-  # renders them in a second mpv from its PATH, given the same build here.
+  # thumbnail previews, which uosc picks up automatically when present.
   scripts = [
     pkgs.mpvScripts.uosc
-    (pkgs.mpvScripts.thumbfast.override {inherit mpv-unwrapped;})
+    pkgs.mpvScripts.thumbfast
     # Queue the rest of the folder when a file is opened, so episodes chain.
     pkgs.mpvScripts.autoload
     # Recently played menu on `h` (its own default binding), drawn by uosc
@@ -106,14 +77,14 @@ in {
     # starts without the scripts. Copying the binary into the wrapper's own
     # bundle means any io.mpv macOS registers is one that loads them.
     package = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin (
-      (pkgs.mpv.override {inherit scripts mpv-unwrapped;}).overrideAttrs (old: let
-        stock = ''makeWrapper "${mpv-unwrapped}/Applications/mpv.app/Contents/MacOS/mpv"'';
+      (pkgs.mpv.override {inherit scripts;}).overrideAttrs (old: let
+        stock = ''makeWrapper "${pkgs.mpv-unwrapped}/Applications/mpv.app/Contents/MacOS/mpv"'';
         own = "$out/Applications/mpv.app/Contents/MacOS/mpv-unwrapped";
         # symlinkJoin bakes postBuild into buildCommand, so patch it there.
         buildCommand =
           builtins.replaceStrings [stock] [
             ''
-              cp ${mpv-unwrapped}/Applications/mpv.app/Contents/MacOS/mpv "${own}"
+              cp ${pkgs.mpv-unwrapped}/Applications/mpv.app/Contents/MacOS/mpv "${own}"
               makeWrapper "${own}"''
           ]
           old.buildCommand;
@@ -122,7 +93,7 @@ in {
           inherit buildCommand;
         })
     );
-    # home-manager accepts either `package` or `scripts`, so darwin's patched
+    # home-manager accepts either `package` or `scripts`, so darwin's
     # package above carries the scripts itself.
     scripts = lib.mkIf (!pkgs.stdenv.hostPlatform.isDarwin) scripts;
     config = {
