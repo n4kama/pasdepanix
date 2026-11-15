@@ -5,6 +5,14 @@
   ...
 }: let
   cfg = config.programs.tstream;
+
+  # shortcut: nixpkgs builds aws-lc-sys against a system AWS-LC
+  # (NixOS/nixpkgs#570938) and its rqbit package provides none, so rqbit
+  # fails to build. Drop this once nixpkgs's rqbit carries aws-lc itself.
+  rqbit = pkgs.rqbit.overrideAttrs (old: {
+    nativeBuildInputs = (old.nativeBuildInputs or []) ++ [pkgs.pkg-config];
+    buildInputs = (old.buildInputs or []) ++ [pkgs.aws-lc];
+  });
 in {
   # tstream — stream a magnet link straight into a video player. rqbit serves
   # the torrent over HTTP on a random loopback port with all persistence
@@ -37,7 +45,7 @@ in {
   config.home.packages = [
     (pkgs.writeShellApplication {
       name = "tstream";
-      runtimeInputs = with pkgs; [rqbit curl jq coreutils];
+      runtimeInputs = [rqbit] ++ (with pkgs; [curl jq coreutils]);
       text =
         ''
           player=(${lib.escapeShellArgs cfg.player})
