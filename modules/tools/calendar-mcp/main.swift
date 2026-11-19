@@ -1,7 +1,8 @@
 // calendar-mcp: MCP server (stdio) for macOS Calendar events and Reminders. It
 // lists them (list_events), creates new ones (create_event, create_reminder),
-// and moves an event to other dates (update_event). It never deletes anything,
-// and changes nothing else of an existing event or reminder.
+// and edits an event's dates, title, location, notes or url (update_event). It
+// never deletes anything, and changes nothing else of an existing event or
+// reminder.
 //
 // macOS grants calendar access only to an app whose Info.plist declares it, and
 // charges a child process to its parent app: spawned by an MCP client, it
@@ -184,23 +185,38 @@ func createEvent(_ input: [String: Any]) -> [String: Any] {
     return ["created": eventInfo(event)]
 }
 
-// Moves the event `id` (from list_events) to new dates. A recurring event
-// changes only in the occurrence that id names.
+// Edits the event `id` (from list_events): its dates when start is given, and
+// each of title, location, notes and url that is given. An empty location, notes
+// or url clears it. A recurring event changes only in the occurrence that id
+// names.
 func updateEvent(_ input: [String: Any]) -> [String: Any] {
     guard let id = nonEmpty(input["id"] as? String) else { return ["error": "id is required"] }
-    let when: (start: Date, end: Date, allDay: Bool)
-    switch timing(input) {
-    case .success(let t): when = t
-    case .failure(let refusal): return ["error": refusal.reason]
+    let fields = ["start", "title", "location", "notes", "url"]
+    guard fields.contains(where: { input[$0] != nil }) else { return ["error": "give at least one of \(fields.joined(separator: ", "))"] }
+    if input["title"] != nil, nonEmpty(input["title"] as? String) == nil { return ["error": "title cannot be empty"] }
+    var when: (start: Date, end: Date, allDay: Bool)?
+    if input["start"] != nil {
+        switch timing(input) {
+        case .success(let t): when = t
+        case .failure(let refusal): return ["error": refusal.reason]
+        }
+    } else if input["end"] != nil || input["all_day"] != nil {
+        return ["error": "end and all_day need start"]
     }
     let store = EKEventStore()
     guard granted(store.requestFullAccessToEvents) else { return accessDenied }
     guard let event = store.event(withIdentifier: id) else { return ["error": "no event with id \(id)"] }
     guard event.calendar.allowsContentModifications else { return ["error": "the calendar \"\(event.calendar.title)\" is read-only"] }
 
-    event.isAllDay = when.allDay
-    event.startDate = when.start
-    event.endDate = when.end
+    if let when {
+        event.isAllDay = when.allDay
+        event.startDate = when.start
+        event.endDate = when.end
+    }
+    if let title = input["title"] as? String { event.title = title }
+    if let location = input["location"] as? String { event.location = nonEmpty(location) }
+    if let notes = input["notes"] as? String { event.notes = nonEmpty(notes) }
+    if let url = input["url"] as? String { event.url = nonEmpty(url).flatMap(URL.init(string:)) }
     do { try store.save(event, span: .thisEvent, commit: true) } catch { return ["error": "cannot save the event: \(error.localizedDescription)"] }
     return ["updated": eventInfo(event)]
 }
@@ -310,9 +326,10 @@ let tools: [[String: Any]] = [
     [
         "name": "update_event",
         "description": """
-            Move an existing macOS Calendar event to new dates. Takes the event's id from \
-            list_events, and start, end and all_day as create_event does. Changes nothing \
-            else of the event. Returns the event as saved.
+            Edit an existing macOS Calendar event. Takes the event's id from list_events, \
+            and any of: new dates (start, end and all_day as create_event does; end and \
+            all_day need start), title, location, notes, url. An empty location, notes or \
+            url clears it. Changes nothing else of the event. Returns the event as saved.
             """,
         "inputSchema": [
             "type": "object",
@@ -321,8 +338,12 @@ let tools: [[String: Any]] = [
                 "start": ["type": "string", "description": "Start: \(timeFormat); YYYY-MM-DD for an all-day event."],
                 "end": ["type": "string", "description": "End, same form as start. Defaults to 1 hour after start, or to the start day for an all-day event (inclusive)."],
                 "all_day": ["type": "boolean", "description": "Defaults to false."],
+                "title": ["type": "string"],
+                "location": ["type": "string"],
+                "notes": ["type": "string"],
+                "url": ["type": "string"],
             ],
-            "required": ["id", "start"],
+            "required": ["id"],
         ],
     ],
     [
