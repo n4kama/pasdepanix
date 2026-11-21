@@ -142,9 +142,11 @@ in {
       X = "script-binding uosc/audio";
       V = "script-binding uosc/subtitles";
       # OpenSubtitles search and the stream quality picker, both built into
-      # uosc but unbound by default. Also reachable from its right-click menu.
+      # uosc but unbound by default. Also reachable from its menu.
       "alt+d" = "script-binding uosc/download-subtitles";
       Y = "script-binding uosc/stream-quality";
+      # Right-click pauses instead of opening mpv's context menu.
+      MBTN_RIGHT = "cycle pause";
     };
   };
 }
