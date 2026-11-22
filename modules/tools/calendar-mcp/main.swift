@@ -1,8 +1,9 @@
 // calendar-mcp: MCP server (stdio) for macOS Calendar events and Reminders. It
-// lists them (list_events), creates new ones (create_event, create_reminder),
-// and edits an event's dates, title, location, notes or url (update_event). It
-// never deletes anything, and changes nothing else of an existing event or
-// reminder.
+// lists them (list_events, and list_reminders for one list with its sections),
+// creates new ones (create_event, create_reminder), and edits an event's dates,
+// title, location, notes or url (update_event) or a reminder's title, notes, url
+// or due date (update_reminder). It never deletes or completes anything, and
+// changes nothing else of an existing event or reminder.
 //
 // macOS grants calendar access only to an app whose Info.plist declares it, and
 // charges a child process to its parent app: spawned by an MCP client, it
@@ -16,6 +17,8 @@
 //   calendar-mcp --create-event JSON        one creation, JSON on stdout (run by `open`)
 //   calendar-mcp --create-reminder JSON
 //   calendar-mcp --update-event JSON
+//   calendar-mcp --list-reminders JSON
+//   calendar-mcp --update-reminder JSON
 
 import EventKit
 import Foundation
@@ -101,6 +104,7 @@ func reminderInfo(_ r: EKReminder, now: Date = Date()) -> [String: Any] {
     // A due date without a time is overdue only once its day has passed.
     let dateOnly = r.dueDateComponents?.hour == nil
     return [
+        "id": r.calendarItemIdentifier,
         "title": r.title ?? "",
         "list": r.calendar.title,
         "due": due.map { dateOnly ? day.string(from: $0) : iso.string(from: $0) } as Any?,
@@ -240,16 +244,131 @@ func createReminder(_ input: [String: Any]) -> [String: Any] {
     reminder.title = title
     reminder.notes = input["notes"] as? String
     reminder.url = (input["url"] as? String).flatMap(URL.init(string:))
-    if let due {
-        var components = Calendar.current.dateComponents(due.dateOnly ? [.year, .month, .day] : [.year, .month, .day, .hour, .minute], from: due.date)
-        if !due.dateOnly {
-            components.timeZone = .current
-            reminder.addAlarm(EKAlarm(absoluteDate: due.date))
-        }
-        reminder.dueDateComponents = components
-    }
+    if let due { setDue(reminder, due) }
     do { try store.save(reminder, commit: true) } catch { return ["error": "cannot save the reminder: \(error.localizedDescription)"] }
     return ["created": reminderInfo(reminder)]
+}
+
+// Sets a reminder's due date, nil to clear it. The alert at the due time goes
+// with it: absolute-date alerts are the due-time ones this server adds, and
+// the Reminders app adds the same.
+func setDue(_ reminder: EKReminder, _ due: (date: Date, dateOnly: Bool)?) {
+    for alarm in reminder.alarms ?? [] where alarm.absoluteDate != nil { reminder.removeAlarm(alarm) }
+    guard let due else { reminder.dueDateComponents = nil; return }
+    var components = Calendar.current.dateComponents(due.dateOnly ? [.year, .month, .day] : [.year, .month, .day, .hour, .minute], from: due.date)
+    if !due.dateOnly {
+        components.timeZone = .current
+        reminder.addAlarm(EKAlarm(absoluteDate: due.date))
+    }
+    reminder.dueDateComponents = components
+}
+
+// Edits the reminder `id` (from list_events or list_reminders): each of title,
+// notes, url and due that is given. An empty notes, url or due clears it.
+func updateReminder(_ input: [String: Any]) -> [String: Any] {
+    guard let id = nonEmpty(input["id"] as? String) else { return ["error": "id is required"] }
+    let fields = ["title", "notes", "url", "due"]
+    guard fields.contains(where: { input[$0] != nil }) else { return ["error": "give at least one of \(fields.joined(separator: ", "))"] }
+    if input["title"] != nil, nonEmpty(input["title"] as? String) == nil { return ["error": "title cannot be empty"] }
+    var due: (date: Date, dateOnly: Bool)?
+    if let dueText = nonEmpty(input["due"] as? String) {
+        guard let parsed = parseTime(dueText) else { return ["error": "due must be YYYY-MM-DD or YYYY-MM-DDTHH:MM"] }
+        due = parsed
+    }
+    let store = EKEventStore()
+    guard granted(store.requestFullAccessToReminders) else { return accessDenied }
+    guard let reminder = store.calendarItem(withIdentifier: id) as? EKReminder else { return ["error": "no reminder with id \(id)"] }
+    guard reminder.calendar.allowsContentModifications else { return ["error": "the list \"\(reminder.calendar.title)\" is read-only"] }
+
+    if let title = input["title"] as? String { reminder.title = title }
+    if let notes = input["notes"] as? String { reminder.notes = nonEmpty(notes) }
+    if let url = input["url"] as? String { reminder.url = nonEmpty(url).flatMap(URL.init(string:)) }
+    if input["due"] != nil { setDue(reminder, due) }
+    do { try store.save(reminder, commit: true) } catch { return ["error": "cannot save the reminder: \(error.localizedDescription)"] }
+    return ["updated": reminderInfo(reminder)]
+}
+
+// The rows of a query on an SQLite database, opened read-only by macOS's own
+// sqlite3, as JSON objects; none when it cannot be read.
+func sqlite(_ path: String, _ sql: String) -> [[String: Any]] {
+    let run = Process()
+    run.executableURL = URL(fileURLWithPath: "/usr/bin/sqlite3")
+    run.arguments = ["-readonly", "-json", path, sql]
+    let out = Pipe()
+    run.standardOutput = out
+    run.standardError = FileHandle.nullDevice
+    guard (try? run.run()) != nil else { return [] }
+    let data = out.fileHandleForReading.readDataToEndOfFile()
+    run.waitUntilExit()
+    return (try? JSONSerialization.jsonObject(with: data)) as? [[String: Any]] ?? []
+}
+
+// The sections of the Reminders lists named `name`, and the section of each of
+// their reminders, keyed by the reminder's external identifier. EventKit has
+// no sections, so they come from the Reminders app's own databases, opened
+// read-only: an undocumented schema (macOS 14 to 26), so anything unreadable
+// leaves the sections out rather than failing. Reading them needs Full Disk
+// Access for the app (System Settings > Privacy & Security), which macOS never
+// prompts for. Sections come in creation order.
+// shortcut: creation order, not the order set by dragging (stored in
+// ZSECTIONIDSORDERINGASDATA); read that if sections get reordered by hand.
+func sections(ofList name: String) -> (names: [String], byReminder: [String: String]) {
+    let stores = FileManager.default.homeDirectoryForCurrentUser
+        .appendingPathComponent("Library/Group Containers/group.com.apple.reminders/Container_v1/Stores")
+    var names: [String] = []
+    var byReminder: [String: String] = [:]
+    for file in (try? FileManager.default.contentsOfDirectory(atPath: stores.path)) ?? []
+    where file.hasPrefix("Data-") && file.hasSuffix(".sqlite") {
+        let db = stores.appendingPathComponent(file).path
+        var byGroup: [String: String] = [:]
+        for row in sqlite(db, """
+            SELECT l.ZNAME AS list, s.ZCKIDENTIFIER AS id, s.ZDISPLAYNAME AS name
+            FROM ZREMCDBASESECTION s JOIN ZREMCDBASELIST l ON s.ZLIST = l.Z_PK
+            WHERE l.ZMARKEDFORDELETION = 0 AND s.ZMARKEDFORDELETION = 0 ORDER BY s.ZCREATIONDATE
+            """) where row["list"] as? String == name {
+            guard let id = row["id"] as? String, let section = row["name"] as? String else { continue }
+            byGroup[id] = section
+            names.append(section)
+        }
+        // {"memberships": [{"groupID": section, "memberID": reminder, "modifiedOn": seconds}]};
+        // a reminder moved between sections can be listed more than once, the latest wins.
+        for row in sqlite(db, """
+            SELECT ZNAME AS list, CAST(ZMEMBERSHIPSOFREMINDERSINSECTIONSASDATA AS TEXT) AS memberships
+            FROM ZREMCDBASELIST WHERE ZMARKEDFORDELETION = 0 AND ZMEMBERSHIPSOFREMINDERSINSECTIONSASDATA IS NOT NULL
+            """) where row["list"] as? String == name {
+            let text = Data((row["memberships"] as? String ?? "").utf8)
+            let memberships = ((try? JSONSerialization.jsonObject(with: text)) as? [String: Any])?["memberships"] as? [[String: Any]] ?? []
+            for m in memberships.sorted(by: { ($0["modifiedOn"] as? Double ?? 0) < ($1["modifiedOn"] as? Double ?? 0) }) {
+                if let member = m["memberID"] as? String, let group = m["groupID"] as? String, let section = byGroup[group] {
+                    byReminder[member] = section
+                }
+            }
+        }
+    }
+    return (names, byReminder)
+}
+
+// The incomplete reminders of the list `list`, oldest first, each with its
+// section when it is in one, and the list's sections.
+func listReminders(_ input: [String: Any]) -> [String: Any] {
+    guard let name = nonEmpty(input["list"] as? String) else { return ["error": "list is required"] }
+    let store = EKEventStore()
+    guard granted(store.requestFullAccessToReminders) else { return accessDenied }
+    let lists = store.calendars(for: .reminder).filter { $0.title == name }
+    guard !lists.isEmpty else { return ["error": "no Reminders list named \"\(name)\""] }
+    let pending: [EKReminder] = wait { done in
+        store.fetchReminders(matching: store.predicateForIncompleteReminders(withDueDateStarting: nil, ending: nil, calendars: lists)) { done($0 ?? []) }
+    }
+    let (names, byReminder) = sections(ofList: name)
+    let now = Date()
+    let reminders = pending
+        .sorted { ($0.creationDate ?? .distantPast) < ($1.creationDate ?? .distantPast) }
+        .map { r in
+            var info = reminderInfo(r, now: now)
+            info["section"] = r.calendarItemExternalIdentifier.flatMap { byReminder[$0] }
+            return info
+        }
+    return ["list": name, "sections": names, "reminders": reminders]
 }
 
 let args = CommandLine.arguments
@@ -257,10 +376,13 @@ if args.count == 4, args[1] == "--query" {
     FileHandle.standardOutput.write(json(query(args[2], args[3])))
     exit(0)
 }
-let writers = ["--create-event": createEvent, "--create-reminder": createReminder, "--update-event": updateEvent]
-if args.count == 3, let write = writers[args[1]] {
+let operations = [
+    "--create-event": createEvent, "--create-reminder": createReminder, "--update-event": updateEvent,
+    "--list-reminders": listReminders, "--update-reminder": updateReminder,
+]
+if args.count == 3, let run = operations[args[1]] {
     let input = (try? JSONSerialization.jsonObject(with: Data(args[2].utf8))) as? [String: Any] ?? [:]
-    FileHandle.standardOutput.write(json(write(input)))
+    FileHandle.standardOutput.write(json(run(input)))
     exit(0)
 }
 
@@ -350,8 +472,7 @@ let tools: [[String: Any]] = [
         "name": "create_reminder",
         "description": """
             Create a new reminder, in the default Reminders list unless `list` names another. \
-            A due time also sets an alert at that time. Returns the reminder as saved. Only \
-            creates: it cannot change, complete or delete a reminder.
+            A due time also sets an alert at that time. Returns the reminder as saved.
             """,
         "inputSchema": [
             "type": "object",
@@ -363,6 +484,42 @@ let tools: [[String: Any]] = [
                 "list": ["type": "string", "description": "Reminders list name. Omit to use the default list."],
             ],
             "required": ["title"],
+        ],
+    ],
+    [
+        "name": "list_reminders",
+        "description": """
+            List the incomplete reminders of one Reminders list, oldest first, with the \
+            list's sections (in creation order) and each reminder's section, absent when it \
+            is in none. Sections are read from the Reminders app's database and may be \
+            missing if macOS changes it; they cannot be set.
+            """,
+        "inputSchema": [
+            "type": "object",
+            "properties": [
+                "list": ["type": "string", "description": "Reminders list name."],
+            ],
+            "required": ["list"],
+        ],
+    ],
+    [
+        "name": "update_reminder",
+        "description": """
+            Edit an existing reminder. Takes the reminder's id from list_events or \
+            list_reminders, and any of: title, notes, url, due (as create_reminder takes it). \
+            An empty notes, url or due clears it. Changes nothing else: it cannot complete, \
+            delete, or move a reminder to another list or section. Returns the reminder as saved.
+            """,
+        "inputSchema": [
+            "type": "object",
+            "properties": [
+                "id": ["type": "string", "description": "The reminder's id, from list_events or list_reminders."],
+                "title": ["type": "string"],
+                "notes": ["type": "string"],
+                "url": ["type": "string"],
+                "due": ["type": "string", "description": "Due day, YYYY-MM-DD, or \(timeFormat). Empty to clear."],
+            ],
+            "required": ["id"],
         ],
     ],
 ]
@@ -383,6 +540,10 @@ func operation(_ name: String?, _ input: [String: Any]) -> [String]? {
         return ["--create-reminder", String(decoding: json(input), as: UTF8.self)]
     case "update_event":
         return ["--update-event", String(decoding: json(input), as: UTF8.self)]
+    case "list_reminders":
+        return ["--list-reminders", String(decoding: json(input), as: UTF8.self)]
+    case "update_reminder":
+        return ["--update-reminder", String(decoding: json(input), as: UTF8.self)]
     default:
         return nil
     }
@@ -399,7 +560,7 @@ while let line = readLine() {
         result = [
             "protocolVersion": params["protocolVersion"] ?? "2025-06-18",
             "capabilities": ["tools": [String: Any]()],
-            "serverInfo": ["name": "calendar-mcp", "version": "1.2"],
+            "serverInfo": ["name": "calendar-mcp", "version": "1.3"],
         ]
     case "ping":
         result = [:]
