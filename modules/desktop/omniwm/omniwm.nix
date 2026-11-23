@@ -5,6 +5,30 @@
   ...
 }: let
   cfg = config.omniwm;
+
+  # Runs on every active-workspace change; `omniwmctl watch` passes the event as
+  # one JSON line on stdin. When the switch leaves no managed window focused
+  # (OmniWM selected a native-fullscreen placeholder), it focuses the
+  # workspace's native-fullscreen window, so macOS moves to its Space (OmniWM
+  # issue #1066). `focusedWindowId` and the `--focused` selector only see a
+  # managed window holding focus. Needs `ipcEnabled = true` in settings.toml.
+  omniwmctl = "/opt/homebrew/bin/omniwmctl";
+  focusNativeFullscreen = pkgs.writeShellApplication {
+    name = "omniwm-focus-native-fullscreen";
+    runtimeInputs = [pkgs.jq];
+    text = ''
+      workspace=$(jq -r '.result.payload.workspace.rawName // empty')
+      [ -n "$workspace" ] || exit 0
+      focused=$(${omniwmctl} query workspaces --workspace "$workspace" --fields focused-window-id --format json \
+        | jq -r '.result.payload.workspaces[0].focusedWindowId // empty')
+      [ -z "$focused" ] || exit 0
+      id=$(${omniwmctl} query windows --workspace "$workspace" --fields id,layout-reason --format json \
+        | jq -r 'first(.result.payload.windows[] | select(.layoutReason == "native-fullscreen") | .id) // empty')
+      if [ -n "$id" ]; then
+        ${omniwmctl} window focus "$id" >/dev/null
+      fi
+    '';
+  };
 in {
   # OmniWM - Tiling Window Manager for macOS
   # Installed via homebrew (official cask "omniwm") in the nix-darwin configuration.
@@ -64,6 +88,25 @@ in {
           config = {
             ProgramArguments = ["/usr/bin/open" "-a" "OmniWM"];
             RunAtLoad = true;
+          };
+        };
+        # `--reconnect` survives OmniWM restarts; KeepAlive restarts the watcher
+        # itself if it exits (e.g. omniwmctl missing before the cask installs).
+        omniwm-focus-native-fullscreen = {
+          enable = true;
+          config = {
+            ProgramArguments = [
+              omniwmctl
+              "watch"
+              "active-workspace"
+              "--no-send-initial"
+              "--reconnect"
+              "--exec"
+              (lib.getExe focusNativeFullscreen)
+            ];
+            RunAtLoad = true;
+            KeepAlive = true;
+            ThrottleInterval = 30;
           };
         };
       }
